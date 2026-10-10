@@ -1,0 +1,161 @@
+{
+  "schema_version": "0.1",
+  "views": [
+    {
+      "id": "macro_prefill_d0",
+      "file": "macro_prefill_d0.html",
+      "kind": "macro",
+      "scenario": "prefill",
+      "depth": 0,
+      "target": null,
+      "title": "模型骨架",
+      "nodes": 20,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "macro_prefill_d1",
+      "file": "macro_prefill_d1.html",
+      "kind": "macro",
+      "scenario": "prefill",
+      "depth": 1,
+      "target": null,
+      "title": "层内主链",
+      "nodes": 48,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "macro_prefill_d2",
+      "file": "macro_prefill_d2.html",
+      "kind": "macro",
+      "scenario": "prefill",
+      "depth": 2,
+      "target": null,
+      "title": "功能模块",
+      "nodes": 555,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "macro_prefill_d3",
+      "file": "macro_prefill_d3.html",
+      "kind": "macro",
+      "scenario": "prefill",
+      "depth": 3,
+      "target": null,
+      "title": "内部运算",
+      "nodes": 1623,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "macro_decode_d0",
+      "file": "macro_decode_d0.html",
+      "kind": "macro",
+      "scenario": "decode",
+      "depth": 0,
+      "target": null,
+      "title": "模型骨架",
+      "nodes": 17,
+      "status": "ok",
+      "rebuild": false
+    },
+    {
+      "id": "macro_decode_d1",
+      "file": "macro_decode_d1.html",
+      "kind": "macro",
+      "scenario": "decode",
+      "depth": 1,
+      "target": null,
+      "title": "层内主链",
+      "nodes": 45,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "macro_decode_d2",
+      "file": "macro_decode_d2.html",
+      "kind": "macro",
+      "scenario": "decode",
+      "depth": 2,
+      "target": null,
+      "title": "功能模块",
+      "nodes": 644,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "macro_decode_d3",
+      "file": "macro_decode_d3.html",
+      "kind": "macro",
+      "scenario": "decode",
+      "depth": 3,
+      "target": null,
+      "title": "内部运算",
+      "nodes": 1692,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "macro_prefill_d4",
+      "file": "macro_prefill_d4.html",
+      "kind": "macro",
+      "scenario": "prefill",
+      "depth": 4,
+      "target": null,
+      "title": "算子细节",
+      "nodes": 3817,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "macro_decode_d4",
+      "file": "macro_decode_d4.html",
+      "kind": "macro",
+      "scenario": "decode",
+      "depth": 4,
+      "target": null,
+      "title": "算子细节",
+      "nodes": 3658,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "micro_dense_block",
+      "file": "micro_dense_block.html",
+      "kind": "micro",
+      "scenario": "prefill",
+      "depth": 0,
+      "target": "layers.0",
+      "title": "layers.0",
+      "nodes": 11,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "micro_moe_block",
+      "file": "micro_moe_block.html",
+      "kind": "micro",
+      "scenario": "prefill",
+      "depth": 0,
+      "target": "layers.3",
+      "title": "layers.3",
+      "nodes": 11,
+      "status": "ok",
+      "rebuild": true
+    },
+    {
+      "id": "micro_mla_attn",
+      "file": "micro_mla_attn.html",
+      "kind": "micro",
+      "scenario": "prefill",
+      "depth": 0,
+      "target": "layers.0.attn",
+      "title": "layers.0.attn",
+      "nodes": 115,
+      "status": "ok",
+      "rebuild": true
+    }
+  ]
+}

@@ -1,0 +1,3508 @@
+{
+  "tool": "audit_model.py（S0 静态审计）",
+  "model_dir": "/Volumes/Agent/workspace/projects/model-insight/model-insight-0928/inputs/Kimi-K3",
+  "env": {
+    "python": "3.13.13",
+    "torch": "2.14.0",
+    "torchvista": "未知"
+  },
+  "files": {
+    "configuration_kimi_k3.py": "735eb9ebe593e17d231e08e1df7f7be9b5ee0e079f511aa201f9572077b416ae",
+    "encoding_k3.py": "49ff03305fdc4be26867972788d36150b67f8a9e852e62bb7959d87482223676",
+    "kimi_k3_processor.py": "ec9f7e86d2ab0eee07a8e7e7c037046e77ac3c25a710ad1298ec13be3b585b54",
+    "kimi_k3_vision_processing.py": "d122b30bfd3a51a6f05d4bfcfda1e657827322b1353f7caefeebc2835d7736b5",
+    "media_utils.py": "78403540328f9847d6b7ebc5c44eb2e6a752863de0afb7d0710728bb161dc60d",
+    "modeling_kimi_k3.py": "b9171c96726eda55234c92ac8dfae7e24c512fda68968ae8f2c3782b42665ea2",
+    "modeling_kimi_linear.py": "9e3564c70ac21854ce5a090cc946c5dc76b70d1050ef50840449181a20fff44a",
+    "tokenization_kimi.py": "f28ea66e2d862a2a5814970b2ce40c2f7d8296ff09aed90a7e7def689b906944"
+  },
+  "other_files": [
+    {
+      "file": "DRIVE.md",
+      "size": 762
+    },
+    {
+      "file": "LICENSE",
+      "size": 3065
+    },
+    {
+      "file": "README.md",
+      "size": 45261
+    },
+    {
+      "file": "config.json",
+      "size": 7006
+    },
+    {
+      "file": "generation_config.json",
+      "size": 53
+    },
+    {
+      "file": "model.safetensors.index.json",
+      "size": 59764096
+    },
+    {
+      "file": "preprocessor_config.json",
+      "size": 1011
+    },
+    {
+      "file": "source.lock.json",
+      "size": 4452
+    },
+    {
+      "file": "tokenizer_config.json",
+      "size": 3478
+    }
+  ],
+  "imports": [
+    {
+      "module": "typing",
+      "name": "Optional",
+      "asname": null,
+      "line": 1,
+      "file": "configuration_kimi_k3.py"
+    },
+    {
+      "module": "transformers.configuration_utils",
+      "name": "PretrainedConfig",
+      "asname": null,
+      "line": 3,
+      "file": "configuration_kimi_k3.py"
+    },
+    {
+      "module": "__future__",
+      "name": "annotations",
+      "asname": null,
+      "line": 9,
+      "file": "encoding_k3.py"
+    },
+    {
+      "module": "json",
+      "name": "json",
+      "asname": null,
+      "line": 11,
+      "file": "encoding_k3.py"
+    },
+    {
+      "module": "dataclasses",
+      "name": "dataclass",
+      "asname": null,
+      "line": 12,
+      "file": "encoding_k3.py"
+    },
+    {
+      "module": "typing",
+      "name": "Any",
+      "asname": null,
+      "line": 13,
+      "file": "encoding_k3.py"
+    },
+    {
+      "module": "typing",
+      "name": "Iterable",
+      "asname": null,
+      "line": 13,
+      "file": "encoding_k3.py"
+    },
+    {
+      "module": "typing",
+      "name": "Optional",
+      "asname": null,
+      "line": 13,
+      "file": "encoding_k3.py"
+    },
+    {
+      "module": "transformers.feature_extraction_utils",
+      "name": "BatchFeature",
+      "asname": null,
+      "line": 7,
+      "file": "kimi_k3_processor.py"
+    },
+    {
+      "module": "transformers.processing_utils",
+      "name": "ProcessorMixin",
+      "asname": null,
+      "line": 8,
+      "file": "kimi_k3_processor.py"
+    },
+    {
+      "module": "transformers.utils",
+      "name": "logging",
+      "asname": null,
+      "line": 9,
+      "file": "kimi_k3_processor.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "ensure_media_type",
+      "asname": null,
+      "line": 11,
+      "file": "kimi_k3_processor.py"
+    },
+    {
+      "module": "json",
+      "name": "json",
+      "asname": null,
+      "line": 4,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "typing",
+      "name": "Any",
+      "asname": null,
+      "line": 5,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "typing",
+      "name": "Dict",
+      "asname": null,
+      "line": 5,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "typing",
+      "name": "Optional",
+      "asname": null,
+      "line": 5,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "typing",
+      "name": "Union",
+      "asname": null,
+      "line": 5,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "numpy",
+      "name": "numpy",
+      "asname": "np",
+      "line": 7,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "torch",
+      "name": "torch",
+      "asname": null,
+      "line": 8,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "PIL",
+      "name": "Image",
+      "asname": null,
+      "line": 9,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "transformers.image_processing_utils",
+      "name": "BaseImageProcessor",
+      "asname": null,
+      "line": 10,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "transformers.image_processing_utils",
+      "name": "BatchFeature",
+      "asname": null,
+      "line": 10,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "transformers.utils",
+      "name": "TensorType",
+      "asname": null,
+      "line": 12,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "MediaInput",
+      "asname": null,
+      "line": 14,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "TransparentBgConfig",
+      "asname": null,
+      "line": 14,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "_to_tensor",
+      "asname": null,
+      "line": 14,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "ensure_media_type",
+      "asname": null,
+      "line": 14,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "image_to_np",
+      "asname": null,
+      "line": 14,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "navit_patchify",
+      "asname": null,
+      "line": 14,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "navit_resize_image",
+      "asname": null,
+      "line": 14,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": ".media_utils",
+      "name": "normalize",
+      "asname": null,
+      "line": 14,
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "module": "base64",
+      "name": "base64",
+      "asname": null,
+      "line": 1,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "functools",
+      "name": "functools",
+      "asname": null,
+      "line": 2,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "io",
+      "name": "io",
+      "asname": null,
+      "line": 3,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "math",
+      "name": "math",
+      "asname": null,
+      "line": 4,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "dataclasses",
+      "name": "dataclass",
+      "asname": null,
+      "line": 5,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "typing",
+      "name": "Literal",
+      "asname": null,
+      "line": 6,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "typing",
+      "name": "TypedDict",
+      "asname": null,
+      "line": 6,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "numpy",
+      "name": "numpy",
+      "asname": "np",
+      "line": 8,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "PIL",
+      "name": "Image",
+      "asname": null,
+      "line": 9,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "torch",
+      "name": "torch",
+      "asname": null,
+      "line": 361,
+      "file": "media_utils.py"
+    },
+    {
+      "module": "math",
+      "name": "math",
+      "asname": null,
+      "line": 25,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "collections.abc",
+      "name": "Sequence",
+      "asname": null,
+      "line": 26,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "copy",
+      "name": "deepcopy",
+      "asname": null,
+      "line": 27,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "typing",
+      "name": "Optional",
+      "asname": null,
+      "line": 28,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "numpy",
+      "name": "numpy",
+      "asname": "np",
+      "line": 30,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "torch",
+      "name": "torch",
+      "asname": null,
+      "line": 31,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "torch.nn",
+      "name": "torch.nn",
+      "asname": "nn",
+      "line": 32,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "torch.nn.functional",
+      "name": "torch.nn.functional",
+      "asname": "F",
+      "line": 33,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "transformers",
+      "name": "activations",
+      "asname": null,
+      "line": 34,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "transformers.activations",
+      "name": "PytorchGELUTanh",
+      "asname": null,
+      "line": 37,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "transformers.activations",
+      "name": "GELUTanh",
+      "asname": null,
+      "line": 39,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "transformers.activations",
+      "name": "PytorchGELUTanh",
+      "asname": null,
+      "line": 42,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "transformers.configuration_utils",
+      "name": "PretrainedConfig",
+      "asname": null,
+      "line": 43,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "transformers.modeling_utils",
+      "name": "PreTrainedModel",
+      "asname": null,
+      "line": 44,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "transformers.models.llava.modeling_llava",
+      "name": "LlavaCausalLMOutputWithPast",
+      "asname": null,
+      "line": 45,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "transformers.utils",
+      "name": "is_flash_attn_2_available",
+      "asname": null,
+      "line": 47,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": ".configuration_kimi_k3",
+      "name": "KimiK3Config",
+      "asname": null,
+      "line": 49,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": ".modeling_kimi_linear",
+      "name": "KimiLinearForCausalLM",
+      "asname": null,
+      "line": 50,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "flash_attn",
+      "name": "flash_attn_varlen_func",
+      "asname": null,
+      "line": 54,
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "module": "math",
+      "name": "math",
+      "asname": null,
+      "line": 24,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "collections.abc",
+      "name": "Callable",
+      "asname": null,
+      "line": 25,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "typing",
+      "name": "Any",
+      "asname": null,
+      "line": 26,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "torch",
+      "name": "torch",
+      "asname": null,
+      "line": 28,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "torch.nn.functional",
+      "name": "torch.nn.functional",
+      "asname": "F",
+      "line": 29,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers",
+      "name": "transformers",
+      "asname": null,
+      "line": 30,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "einops",
+      "name": "rearrange",
+      "asname": null,
+      "line": 31,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "packaging",
+      "name": "version",
+      "asname": null,
+      "line": 32,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "torch",
+      "name": "nn",
+      "asname": null,
+      "line": 33,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.activations",
+      "name": "ACT2FN",
+      "asname": null,
+      "line": 34,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.cache_utils",
+      "name": "Cache",
+      "asname": null,
+      "line": 35,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.generation",
+      "name": "GenerationMixin",
+      "asname": null,
+      "line": 36,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.masking_utils",
+      "name": "create_causal_mask",
+      "asname": null,
+      "line": 37,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.modeling_flash_attention_utils",
+      "name": "FlashAttentionKwargs",
+      "asname": null,
+      "line": 38,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.modeling_outputs",
+      "name": "BaseModelOutputWithPast",
+      "asname": null,
+      "line": 39,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.modeling_outputs",
+      "name": "CausalLMOutputWithPast",
+      "asname": null,
+      "line": 39,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.modeling_utils",
+      "name": "ALL_ATTENTION_FUNCTIONS",
+      "asname": null,
+      "line": 40,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.modeling_utils",
+      "name": "PreTrainedModel",
+      "asname": null,
+      "line": 40,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.processing_utils",
+      "name": "Unpack",
+      "asname": null,
+      "line": 41,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.pytorch_utils",
+      "name": "ALL_LAYERNORM_LAYERS",
+      "asname": null,
+      "line": 42,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.utils",
+      "name": "TransformersKwargs",
+      "asname": null,
+      "line": 43,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.utils",
+      "name": "auto_docstring",
+      "asname": null,
+      "line": 43,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.utils",
+      "name": "can_return_tuple",
+      "asname": null,
+      "line": 43,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.utils",
+      "name": "logging",
+      "asname": null,
+      "line": 43,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.utils.generic",
+      "name": "OutputRecorder",
+      "asname": null,
+      "line": 44,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "transformers.utils.generic",
+      "name": "check_model_inputs",
+      "asname": null,
+      "line": 44,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "fla.modules",
+      "name": "FusedRMSNormGated",
+      "asname": null,
+      "line": 47,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "fla.modules",
+      "name": "ShortConvolution",
+      "asname": null,
+      "line": 47,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "fla.ops.kda",
+      "name": "chunk_kda",
+      "asname": null,
+      "line": 48,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "fla.ops.kda",
+      "name": "fused_recurrent_kda",
+      "asname": null,
+      "line": 48,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "fla.ops.utils.index",
+      "name": "prepare_cu_seqlens_from_mask",
+      "asname": null,
+      "line": 50,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "fla.ops.utils.index",
+      "name": "prepare_lens_from_mask",
+      "asname": null,
+      "line": 50,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "fla.utils",
+      "name": "tensor_cache",
+      "asname": null,
+      "line": 51,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": ".configuration_kimi_k3",
+      "name": "KimiLinearConfig",
+      "asname": null,
+      "line": 55,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "torch.nn.init",
+      "name": "torch.nn.init",
+      "asname": "init",
+      "line": 699,
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "module": "os",
+      "name": "os",
+      "asname": null,
+      "line": 1,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "logging",
+      "name": "getLogger",
+      "asname": null,
+      "line": 2,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "pathlib",
+      "name": "Path",
+      "asname": null,
+      "line": 3,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "shutil",
+      "name": "copyfile",
+      "asname": null,
+      "line": 4,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "typing",
+      "name": "Dict",
+      "asname": null,
+      "line": 5,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "typing",
+      "name": "Iterator",
+      "asname": null,
+      "line": 5,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "typing",
+      "name": "List",
+      "asname": null,
+      "line": 5,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "typing",
+      "name": "Optional",
+      "asname": null,
+      "line": 5,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "typing",
+      "name": "Tuple",
+      "asname": null,
+      "line": 5,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "typing",
+      "name": "Union",
+      "asname": null,
+      "line": 5,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "typing",
+      "name": "cast",
+      "asname": null,
+      "line": 5,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "tiktoken",
+      "name": "tiktoken",
+      "asname": null,
+      "line": 7,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "tiktoken.load",
+      "name": "load_tiktoken_bpe",
+      "asname": null,
+      "line": 8,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "tokenizers",
+      "name": "AddedToken",
+      "asname": null,
+      "line": 9,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "transformers.convert_slow_tokenizer",
+      "name": "bytes_to_unicode",
+      "asname": null,
+      "line": 10,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "transformers.tokenization_utils",
+      "name": "PreTrainedTokenizer",
+      "asname": null,
+      "line": 11,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": ".encoding_k3",
+      "name": "build_chat_segments",
+      "asname": null,
+      "line": 14,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": ".encoding_k3",
+      "name": "is_batched_conversation",
+      "asname": null,
+      "line": 14,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "encoding_k3",
+      "name": "build_chat_segments",
+      "asname": null,
+      "line": 16,
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "module": "encoding_k3",
+      "name": "is_batched_conversation",
+      "asname": null,
+      "line": 16,
+      "file": "tokenization_kimi.py"
+    }
+  ],
+  "missing_deps": [
+    {
+      "module": "PIL",
+      "used_in": [
+        "kimi_k3_vision_processing.py",
+        "media_utils.py"
+      ],
+      "import_sites": [
+        "kimi_k3_vision_processing.py:9",
+        "media_utils.py:9"
+      ]
+    },
+    {
+      "module": "einops",
+      "used_in": [
+        "modeling_kimi_linear.py"
+      ],
+      "import_sites": [
+        "modeling_kimi_linear.py:31"
+      ]
+    },
+    {
+      "module": "fla",
+      "used_in": [
+        "modeling_kimi_linear.py"
+      ],
+      "import_sites": [
+        "modeling_kimi_linear.py:47",
+        "modeling_kimi_linear.py:47",
+        "modeling_kimi_linear.py:48",
+        "modeling_kimi_linear.py:48",
+        "modeling_kimi_linear.py:50",
+        "modeling_kimi_linear.py:50",
+        "modeling_kimi_linear.py:51"
+      ]
+    },
+    {
+      "module": "flash_attn",
+      "used_in": [
+        "modeling_kimi_k3.py"
+      ],
+      "import_sites": [
+        "modeling_kimi_k3.py:54"
+      ]
+    },
+    {
+      "module": "tiktoken",
+      "used_in": [
+        "tokenization_kimi.py"
+      ],
+      "import_sites": [
+        "tokenization_kimi.py:7",
+        "tokenization_kimi.py:8"
+      ]
+    }
+  ],
+  "fallbacks": [
+    {
+      "line": 36,
+      "handler_line": 38,
+      "handler_type": "ImportError",
+      "branch_src": "except ImportError:；    from transformers.activations import GELUTanh；    activations.PytorchGELUTanh = GELUTanh；    PytorchGELUTanh = GELUTanh",
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "line": 46,
+      "handler_line": 52,
+      "handler_type": "ImportError",
+      "branch_src": "except ImportError:；    raise ImportError(\"Plese run `pip install -U fla-core`\")；；from .configuration_kimi_k3 import KimiLinearConfig",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 13,
+      "handler_line": 15,
+      "handler_type": "ImportError",
+      "branch_src": "except ImportError:  # pragma: no cover - supports direct file execution/import.；    from encoding_k3 import build_chat_segments, is_batched_conversation；；logger = getLogger(__name__)",
+      "file": "tokenization_kimi.py"
+    }
+  ],
+  "external_calls": [
+    {
+      "line": 106,
+      "func": "Image.fromarray",
+      "from": "PIL.Image",
+      "file": "media_utils.py"
+    },
+    {
+      "line": 182,
+      "func": "Image.open",
+      "from": "PIL.Image",
+      "file": "media_utils.py"
+    },
+    {
+      "line": 184,
+      "func": "Image.open",
+      "from": "PIL.Image",
+      "file": "media_utils.py"
+    },
+    {
+      "line": 186,
+      "func": "Image.open",
+      "from": "PIL.Image",
+      "file": "media_utils.py"
+    },
+    {
+      "line": 83,
+      "func": "flash_attn_varlen_func",
+      "from": "flash_attn.flash_attn_varlen_func",
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "line": 102,
+      "func": "prepare_lens_from_mask",
+      "from": "fla.ops.utils.index.prepare_lens_from_mask",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 105,
+      "func": "prepare_cu_seqlens_from_mask",
+      "from": "fla.ops.utils.index.prepare_cu_seqlens_from_mask",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 504,
+      "func": "ShortConvolution",
+      "from": "fla.modules.ShortConvolution",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 509,
+      "func": "ShortConvolution",
+      "from": "fla.modules.ShortConvolution",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 514,
+      "func": "ShortConvolution",
+      "from": "fla.modules.ShortConvolution",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 539,
+      "func": "FusedRMSNormGated",
+      "from": "fla.modules.FusedRMSNormGated",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 570,
+      "func": "rearrange",
+      "from": "einops.rearrange",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 602,
+      "func": "rearrange",
+      "from": "einops.rearrange",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 605,
+      "func": "rearrange",
+      "from": "einops.rearrange",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 607,
+      "func": "rearrange",
+      "from": "einops.rearrange",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 610,
+      "func": "chunk_kda",
+      "from": "fla.ops.kda.chunk_kda",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 629,
+      "func": "fused_recurrent_kda",
+      "from": "fla.ops.kda.fused_recurrent_kda",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 655,
+      "func": "rearrange",
+      "from": "einops.rearrange",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 658,
+      "func": "rearrange",
+      "from": "einops.rearrange",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 99,
+      "func": "load_tiktoken_bpe",
+      "from": "tiktoken.load.load_tiktoken_bpe",
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "line": 107,
+      "func": "tiktoken.Encoding",
+      "from": "tiktoken",
+      "file": "tokenization_kimi.py"
+    }
+  ],
+  "classes": [
+    {
+      "name": "KimiLinearConfig",
+      "line": 6,
+      "bases": [
+        "PretrainedConfig"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__",
+        "is_mla",
+        "is_moe",
+        "is_linear_attn",
+        "is_kda_layer"
+      ],
+      "class_attrs": {
+        "model_type": "kimi_linear",
+        "keys_to_ignore_at_inference": [
+          "past_key_values"
+        ]
+      },
+      "init_outline": [
+        {
+          "attr": "model_type",
+          "line": 60,
+          "rhs": "self.model_type = model_type"
+        },
+        {
+          "attr": "vocab_size",
+          "line": 61,
+          "rhs": "self.vocab_size = vocab_size"
+        },
+        {
+          "attr": "hidden_size",
+          "line": 62,
+          "rhs": "self.hidden_size = hidden_size"
+        },
+        {
+          "attr": "head_dim",
+          "line": 63,
+          "rhs": "self.head_dim = ("
+        },
+        {
+          "attr": "intermediate_size",
+          "line": 66,
+          "rhs": "self.intermediate_size = intermediate_size"
+        },
+        {
+          "attr": "num_hidden_layers",
+          "line": 67,
+          "rhs": "self.num_hidden_layers = num_hidden_layers"
+        },
+        {
+          "attr": "num_attention_heads",
+          "line": 68,
+          "rhs": "self.num_attention_heads = num_attention_heads"
+        },
+        {
+          "attr": "num_key_value_heads",
+          "line": 74,
+          "rhs": "self.num_key_value_heads = num_key_value_heads"
+        },
+        {
+          "attr": "hidden_act",
+          "line": 75,
+          "rhs": "self.hidden_act = hidden_act"
+        },
+        {
+          "attr": "initializer_range",
+          "line": 76,
+          "rhs": "self.initializer_range = initializer_range"
+        },
+        {
+          "attr": "rms_norm_eps",
+          "line": 77,
+          "rhs": "self.rms_norm_eps = rms_norm_eps"
+        },
+        {
+          "attr": "use_cache",
+          "line": 78,
+          "rhs": "self.use_cache = use_cache"
+        },
+        {
+          "attr": "rope_theta",
+          "line": 79,
+          "rhs": "self.rope_theta = rope_theta"
+        },
+        {
+          "attr": "rope_scaling",
+          "line": 80,
+          "rhs": "self.rope_scaling = rope_scaling"
+        },
+        {
+          "attr": "q_lora_rank",
+          "line": 82,
+          "rhs": "self.q_lora_rank = q_lora_rank"
+        },
+        {
+          "attr": "kv_lora_rank",
+          "line": 83,
+          "rhs": "self.kv_lora_rank = kv_lora_rank"
+        },
+        {
+          "attr": "qk_nope_head_dim",
+          "line": 84,
+          "rhs": "self.qk_nope_head_dim = qk_nope_head_dim"
+        },
+        {
+          "attr": "qk_rope_head_dim",
+          "line": 85,
+          "rhs": "self.qk_rope_head_dim = qk_rope_head_dim"
+        },
+        {
+          "attr": "v_head_dim",
+          "line": 86,
+          "rhs": "self.v_head_dim = v_head_dim"
+        },
+        {
+          "attr": "mla_use_nope",
+          "line": 87,
+          "rhs": "self.mla_use_nope = mla_use_nope"
+        },
+        {
+          "attr": "mla_use_output_gate",
+          "line": 88,
+          "rhs": "self.mla_use_output_gate = mla_use_output_gate"
+        },
+        {
+          "attr": "num_experts",
+          "line": 90,
+          "rhs": "self.num_experts = num_experts"
+        },
+        {
+          "attr": "num_experts_per_token",
+          "line": 91,
+          "rhs": "self.num_experts_per_token = num_experts_per_token"
+        },
+        {
+          "attr": "moe_renormalize",
+          "line": 92,
+          "rhs": "self.moe_renormalize = moe_renormalize"
+        },
+        {
+          "attr": "num_shared_experts",
+          "line": 93,
+          "rhs": "self.num_shared_experts = num_shared_experts"
+        },
+        {
+          "attr": "routed_scaling_factor",
+          "line": 94,
+          "rhs": "self.routed_scaling_factor = routed_scaling_factor"
+        },
+        {
+          "attr": "moe_router_activation_func",
+          "line": 95,
+          "rhs": "self.moe_router_activation_func = moe_router_activation_func"
+        },
+        {
+          "attr": "moe_intermediate_size",
+          "line": 97,
+          "rhs": "self.moe_intermediate_size = moe_intermediate_size"
+        },
+        {
+          "attr": "first_k_dense_replace",
+          "line": 98,
+          "rhs": "self.first_k_dense_replace = first_k_dense_replace"
+        },
+        {
+          "attr": "moe_layer_freq",
+          "line": 99,
+          "rhs": "self.moe_layer_freq = moe_layer_freq"
+        },
+        {
+          "attr": "use_grouped_topk",
+          "line": 100,
+          "rhs": "self.use_grouped_topk = use_grouped_topk"
+        },
+        {
+          "attr": "num_expert_group",
+          "line": 101,
+          "rhs": "self.num_expert_group = num_expert_group"
+        },
+        {
+          "attr": "topk_group",
+          "line": 102,
+          "rhs": "self.topk_group = topk_group"
+        },
+        {
+          "attr": "num_nextn_predict_layers",
+          "line": 103,
+          "rhs": "self.num_nextn_predict_layers = num_nextn_predict_layers"
+        },
+        {
+          "attr": "attn_res_block_size",
+          "line": 105,
+          "rhs": "self.attn_res_block_size = attn_res_block_size"
+        },
+        {
+          "attr": "latent_moe_use_norm",
+          "line": 106,
+          "rhs": "self.latent_moe_use_norm = latent_moe_use_norm"
+        },
+        {
+          "attr": "activation_situ_beta",
+          "line": 107,
+          "rhs": "self.activation_situ_beta = activation_situ_beta"
+        },
+        {
+          "attr": "activation_situ_linear_beta",
+          "line": 108,
+          "rhs": "self.activation_situ_linear_beta = activation_situ_linear_beta"
+        },
+        {
+          "attr": "max_position_embeddings",
+          "line": 109,
+          "rhs": "self.max_position_embeddings = max_position_embeddings"
+        },
+        {
+          "attr": "routed_expert_hidden_size",
+          "line": 110,
+          "rhs": "self.routed_expert_hidden_size = routed_expert_hidden_size"
+        },
+        {
+          "attr": "topk_method",
+          "line": 111,
+          "rhs": "self.topk_method = topk_method"
+        },
+        {
+          "attr": "linear_attn_config",
+          "line": 116,
+          "rhs": "self.linear_attn_config = linear_attn_config"
+        }
+      ],
+      "file": "configuration_kimi_k3.py"
+    },
+    {
+      "name": "KimiK3VisionConfig",
+      "line": 159,
+      "bases": [
+        "PretrainedConfig"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "patch_size",
+          "line": 196,
+          "rhs": "self.patch_size = patch_size"
+        },
+        {
+          "attr": "init_pos_emb_height",
+          "line": 197,
+          "rhs": "self.init_pos_emb_height = init_pos_emb_height"
+        },
+        {
+          "attr": "init_pos_emb_width",
+          "line": 198,
+          "rhs": "self.init_pos_emb_width = init_pos_emb_width"
+        },
+        {
+          "attr": "init_pos_emb_time",
+          "line": 199,
+          "rhs": "self.init_pos_emb_time = init_pos_emb_time"
+        },
+        {
+          "attr": "pos_emb_type",
+          "line": 200,
+          "rhs": "self.pos_emb_type = pos_emb_type"
+        },
+        {
+          "attr": "vt_num_attention_heads",
+          "line": 201,
+          "rhs": "self.vt_num_attention_heads = vt_num_attention_heads"
+        },
+        {
+          "attr": "vt_num_hidden_layers",
+          "line": 202,
+          "rhs": "self.vt_num_hidden_layers = vt_num_hidden_layers"
+        },
+        {
+          "attr": "vt_hidden_size",
+          "line": 203,
+          "rhs": "self.vt_hidden_size = vt_hidden_size"
+        },
+        {
+          "attr": "vt_intermediate_size",
+          "line": 204,
+          "rhs": "self.vt_intermediate_size = vt_intermediate_size"
+        },
+        {
+          "attr": "merge_kernel_size",
+          "line": 205,
+          "rhs": "self.merge_kernel_size = merge_kernel_size"
+        },
+        {
+          "attr": "merge_type",
+          "line": 206,
+          "rhs": "self.merge_type = merge_type"
+        },
+        {
+          "attr": "_attn_implementation",
+          "line": 207,
+          "rhs": "self._attn_implementation = _attn_implementation"
+        },
+        {
+          "attr": "mm_projector_type",
+          "line": 210,
+          "rhs": "self.mm_projector_type = mm_projector_type"
+        },
+        {
+          "attr": "mm_hidden_size",
+          "line": 211,
+          "rhs": "self.mm_hidden_size = mm_hidden_size if mm_hidden_size is not None else vt_hidden_size"
+        },
+        {
+          "attr": "projector_hidden_act",
+          "line": 212,
+          "rhs": "self.projector_hidden_act = projector_hidden_act"
+        },
+        {
+          "attr": "projector_ln_eps",
+          "line": 213,
+          "rhs": "self.projector_ln_eps = projector_ln_eps"
+        },
+        {
+          "attr": "text_hidden_size",
+          "line": 214,
+          "rhs": "self.text_hidden_size = text_hidden_size"
+        },
+        {
+          "attr": "qkv_hidden_size",
+          "line": 217,
+          "rhs": "self.qkv_hidden_size = qkv_hidden_size"
+        },
+        {
+          "attr": "norm_type",
+          "line": 218,
+          "rhs": "self.norm_type = norm_type"
+        },
+        {
+          "attr": "attn_bias",
+          "line": 219,
+          "rhs": "self.attn_bias = attn_bias"
+        },
+        {
+          "attr": "patch_embed_proj_bias",
+          "line": 220,
+          "rhs": "self.patch_embed_proj_bias = patch_embed_proj_bias"
+        },
+        {
+          "attr": "mlp_type",
+          "line": 221,
+          "rhs": "self.mlp_type = mlp_type"
+        },
+        {
+          "attr": "linear_bias",
+          "line": 222,
+          "rhs": "self.linear_bias = linear_bias"
+        },
+        {
+          "attr": "activation_func",
+          "line": 223,
+          "rhs": "self.activation_func = activation_func"
+        },
+        {
+          "attr": "pos_emb_interpolation_mode",
+          "line": 224,
+          "rhs": "self.pos_emb_interpolation_mode = pos_emb_interpolation_mode"
+        }
+      ],
+      "file": "configuration_kimi_k3.py"
+    },
+    {
+      "name": "KimiK3Config",
+      "line": 229,
+      "bases": [
+        "PretrainedConfig"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__"
+      ],
+      "class_attrs": {
+        "model_type": "kimi_k3"
+      },
+      "init_outline": [
+        {
+          "attr": "text_config",
+          "line": 277,
+          "rhs": "self.text_config = text_config"
+        },
+        {
+          "attr": "vision_config",
+          "line": 278,
+          "rhs": "self.vision_config = vision_config"
+        },
+        {
+          "attr": "ignore_index",
+          "line": 280,
+          "rhs": "self.ignore_index = ignore_index"
+        },
+        {
+          "attr": "media_placeholder_token_id",
+          "line": 281,
+          "rhs": "self.media_placeholder_token_id = media_placeholder_token_id"
+        },
+        {
+          "attr": "quantization_config",
+          "line": 283,
+          "rhs": "self.quantization_config = self.text_config.quantization_config"
+        }
+      ],
+      "file": "configuration_kimi_k3.py"
+    },
+    {
+      "name": "EncodeSegment",
+      "line": 25,
+      "bases": [],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [],
+      "class_attrs": {},
+      "init_outline": [],
+      "file": "encoding_k3.py"
+    },
+    {
+      "name": "_ImagePromptState",
+      "line": 30,
+      "bases": [],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__",
+        "next_prompt",
+        "assert_consumed"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "image_prompts",
+          "line": 32,
+          "rhs": "self.image_prompts = image_prompts"
+        },
+        {
+          "attr": "index",
+          "line": 33,
+          "rhs": "self.index = 0"
+        }
+      ],
+      "file": "encoding_k3.py"
+    },
+    {
+      "name": "KimiK3Processor",
+      "line": 18,
+      "bases": [
+        "ProcessorMixin"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__",
+        "update_raw_text",
+        "preprocess_medias",
+        "__call__",
+        "_extract_medias_from_messages",
+        "apply_chat_template",
+        "batch_decode",
+        "decode",
+        "model_input_names"
+      ],
+      "class_attrs": {
+        "attributes": [
+          "image_processor",
+          "tokenizer"
+        ],
+        "valid_kwargs": [
+          "chat_template"
+        ],
+        "image_processor_class": "AutoImageProcessor",
+        "tokenizer_class": "AutoTokenizer"
+      },
+      "init_outline": [
+        {
+          "attr": "media_processor",
+          "line": 51,
+          "rhs": "self.media_processor = image_processor"
+        },
+        {
+          "attr": "image_placeholder",
+          "line": 52,
+          "rhs": "self.image_placeholder = \"<|kimi_image_placeholder|>\""
+        }
+      ],
+      "file": "kimi_k3_processor.py"
+    },
+    {
+      "name": "KimiK3VisionProcessor",
+      "line": 19,
+      "bases": [
+        "BaseImageProcessor"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__",
+        "_transparent_bg_config",
+        "_transparent_bg_fill_stage",
+        "media_tokens_calculator",
+        "make_image_prompt",
+        "get_resize_config",
+        "resize_image",
+        "preprocess",
+        "__repr__",
+        "to_dict",
+        "from_dict",
+        "to_json_string"
+      ],
+      "class_attrs": {
+        "model_type": "kimi_k3"
+      },
+      "init_outline": [
+        {
+          "attr": "media_proc_cfg",
+          "line": 28,
+          "rhs": "self.media_proc_cfg = media_proc_cfg"
+        }
+      ],
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "name": "ImageInput",
+      "line": 12,
+      "bases": [
+        "TypedDict"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [],
+      "class_attrs": {},
+      "init_outline": [],
+      "file": "media_utils.py"
+    },
+    {
+      "name": "TransparentBgConfig",
+      "line": 21,
+      "bases": [],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [],
+      "class_attrs": {},
+      "init_outline": [],
+      "file": "media_utils.py"
+    },
+    {
+      "name": "Learnable2DInterpPosEmbDivided_fixed",
+      "line": 233,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "reset_parameters",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "height",
+          "line": 242,
+          "rhs": "self.height = height"
+        },
+        {
+          "attr": "width",
+          "line": 243,
+          "rhs": "self.width = width"
+        },
+        {
+          "attr": "num_frames",
+          "line": 244,
+          "rhs": "self.num_frames = num_frames"
+        },
+        {
+          "attr": "dim",
+          "line": 245,
+          "rhs": "self.dim = dim"
+        },
+        {
+          "attr": "interpolation_mode",
+          "line": 246,
+          "rhs": "self.interpolation_mode = interpolation_mode"
+        },
+        {
+          "attr": "weight",
+          "line": 247,
+          "rhs": "self.weight = nn.Parameter(torch.empty(height, width, dim))"
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "MoonVision3dPatchEmbed",
+      "line": 286,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "patch_size",
+          "line": 306,
+          "rhs": "self.patch_size = patch_size"
+        },
+        {
+          "attr": "proj",
+          "line": 308,
+          "rhs": "self.proj = nn.Conv2d(in_dim,"
+        },
+        {
+          "attr": "pos_emb",
+          "line": 315,
+          "rhs": "self.pos_emb = Learnable2DInterpPosEmbDivided_fixed("
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "Rope2DPosEmbRepeated",
+      "line": 341,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": false,
+      "methods": [
+        "__init__",
+        "extra_repr",
+        "_precompute_freqs_cis",
+        "get_freqs_cis"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "dim",
+          "line": 369,
+          "rhs": "self.dim = dim"
+        },
+        {
+          "attr": "max_height",
+          "line": 371,
+          "rhs": "self.max_height = max_height"
+        },
+        {
+          "attr": "max_width",
+          "line": 372,
+          "rhs": "self.max_width = max_width"
+        },
+        {
+          "attr": "theta_base",
+          "line": 373,
+          "rhs": "self.theta_base = theta_base"
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "MLP2",
+      "line": 437,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "fc0",
+          "line": 447,
+          "rhs": "self.fc0 = nn.Linear(dims[0], dims[1], bias=bias)"
+        },
+        {
+          "attr": "fc1",
+          "line": 448,
+          "rhs": "self.fc1 = nn.Linear(dims[1], dims[2], bias=bias)"
+        },
+        {
+          "attr": "activation",
+          "line": 449,
+          "rhs": "self.activation = activation"
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "MoonViTEncoderLayer",
+      "line": 461,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "attention_qkvpacked",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "num_heads",
+          "line": 479,
+          "rhs": "self.num_heads = num_heads"
+        },
+        {
+          "attr": "hidden_dim",
+          "line": 480,
+          "rhs": "self.hidden_dim = hidden_dim"
+        },
+        {
+          "attr": "qkv_hidden_size",
+          "line": 481,
+          "rhs": "self.qkv_hidden_size = hidden_dim if qkv_hidden_size is None else qkv_hidden_size"
+        },
+        {
+          "attr": "hidden_size_per_attention_head",
+          "line": 482,
+          "rhs": "self.hidden_size_per_attention_head = self.qkv_hidden_size // self.num_heads"
+        },
+        {
+          "attr": "attn_implementation",
+          "line": 483,
+          "rhs": "self.attn_implementation = attn_implementation"
+        },
+        {
+          "attr": "use_deterministic_attn",
+          "line": 484,
+          "rhs": "self.use_deterministic_attn = use_deterministic_attn"
+        },
+        {
+          "attr": "wqkv",
+          "line": 502,
+          "rhs": "self.wqkv = nn.Linear(hidden_dim,"
+        },
+        {
+          "attr": "wo",
+          "line": 505,
+          "rhs": "self.wo = nn.Linear(self.qkv_hidden_size, hidden_dim, bias=attn_bias)"
+        },
+        {
+          "attr": "norm0",
+          "line": 487,
+          "rhs": "self.norm0 = nn.LayerNorm(hidden_dim)"
+        },
+        {
+          "attr": "norm1",
+          "line": 488,
+          "rhs": "self.norm1 = nn.LayerNorm(hidden_dim)"
+        },
+        {
+          "attr": "mlp",
+          "line": 496,
+          "rhs": "self.mlp = MLP2([hidden_dim, mlp_dim, hidden_dim],"
+        },
+        {
+          "attr": "norm0",
+          "line": 490,
+          "rhs": "self.norm0 = nn.RMSNorm(hidden_dim)"
+        },
+        {
+          "attr": "norm1",
+          "line": 491,
+          "rhs": "self.norm1 = nn.RMSNorm(hidden_dim)"
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "MoonViT3dEncoder",
+      "line": 567,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "use_deterministic_attn",
+          "line": 575,
+          "rhs": "self.use_deterministic_attn = use_deterministic_attn"
+        },
+        {
+          "attr": "rope_2d",
+          "line": 579,
+          "rhs": "self.rope_2d = Rope2DPosEmbRepeated("
+        },
+        {
+          "attr": "blocks",
+          "line": 581,
+          "rhs": "self.blocks = nn.ModuleList(["
+        },
+        {
+          "attr": "final_layernorm",
+          "line": 589,
+          "rhs": "self.final_layernorm = nn.LayerNorm(hidden_dim)"
+        },
+        {
+          "attr": "final_layernorm",
+          "line": 591,
+          "rhs": "self.final_layernorm = nn.RMSNorm(hidden_dim)"
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "MoonViT3dPretrainedModel",
+      "line": 649,
+      "bases": [
+        "PreTrainedModel"
+      ],
+      "nn_module_like": false,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {
+        "config_class": null,
+        "model_type": "moonvit3d",
+        "_no_split_modules": [
+          "MoonViTEncoderLayer"
+        ],
+        "_supports_flash_attn_2": true,
+        "_supports_sdpa": true
+      },
+      "init_outline": [
+        {
+          "attr": "merge_kernel_size",
+          "line": 659,
+          "rhs": "self.merge_kernel_size = config.merge_kernel_size"
+        },
+        {
+          "attr": "patch_size",
+          "line": 660,
+          "rhs": "self.patch_size = config.patch_size"
+        },
+        {
+          "attr": "merge_type",
+          "line": 661,
+          "rhs": "self.merge_type = config.merge_type"
+        },
+        {
+          "attr": "patch_embed",
+          "line": 663,
+          "rhs": "self.patch_embed = MoonVision3dPatchEmbed("
+        },
+        {
+          "attr": "encoder",
+          "line": 676,
+          "rhs": "self.encoder = MoonViT3dEncoder("
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "IdentityMap",
+      "line": 725,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "MLP",
+      "line": 734,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "pre_norm",
+          "line": 739,
+          "rhs": "self.pre_norm = nn.LayerNorm(config.mm_hidden_size)"
+        },
+        {
+          "attr": "proj",
+          "line": 740,
+          "rhs": "self.proj = nn.Sequential("
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "PatchMergerMLP",
+      "line": 756,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "hidden_size",
+          "line": 761,
+          "rhs": "self.hidden_size = config.mm_hidden_size * ("
+        },
+        {
+          "attr": "pre_norm",
+          "line": 763,
+          "rhs": "self.pre_norm = nn.LayerNorm(config.mm_hidden_size, eps=eps)"
+        },
+        {
+          "attr": "proj",
+          "line": 764,
+          "rhs": "self.proj = nn.Sequential("
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "PatchMergerMLPV2",
+      "line": 783,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "hidden_size",
+          "line": 788,
+          "rhs": "self.hidden_size = config.mm_hidden_size * ("
+        },
+        {
+          "attr": "proj",
+          "line": 790,
+          "rhs": "self.proj = nn.Sequential("
+        },
+        {
+          "attr": "post_norm",
+          "line": 795,
+          "rhs": "self.post_norm = nn.RMSNorm(config.hidden_size, eps=eps)"
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "KimiK3PreTrainedModel",
+      "line": 818,
+      "bases": [
+        "PreTrainedModel"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "_init_weights"
+      ],
+      "class_attrs": {
+        "config_class": "config_class = KimiK3Config",
+        "base_model_prefix": "model",
+        "_no_split_modules": [
+          "MoonViT3dPretrainedModel",
+          "MoonViTEncoderLayer",
+          "KimiDecoderLayer",
+          "PatchMergerMLP",
+          "PatchMergerMLPV2"
+        ],
+        "_skip_keys_device_placement": "past_key_values",
+        "_supports_flash_attn_2": true,
+        "_supports_sdpa": false
+      },
+      "init_outline": [],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "VisionTowerConfig",
+      "line": 853,
+      "bases": [
+        "PretrainedConfig"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__"
+      ],
+      "class_attrs": {
+        "model_type": "moonvit3d"
+      },
+      "init_outline": [
+        {
+          "attr": "patch_size",
+          "line": 858,
+          "rhs": "self.patch_size = config.patch_size"
+        },
+        {
+          "attr": "init_pos_emb_height",
+          "line": 859,
+          "rhs": "self.init_pos_emb_height = config.init_pos_emb_height"
+        },
+        {
+          "attr": "init_pos_emb_width",
+          "line": 860,
+          "rhs": "self.init_pos_emb_width = config.init_pos_emb_width"
+        },
+        {
+          "attr": "init_pos_emb_time",
+          "line": 861,
+          "rhs": "self.init_pos_emb_time = config.init_pos_emb_time"
+        },
+        {
+          "attr": "pos_emb_type",
+          "line": 862,
+          "rhs": "self.pos_emb_type = config.pos_emb_type"
+        },
+        {
+          "attr": "num_attention_heads",
+          "line": 863,
+          "rhs": "self.num_attention_heads = config.vt_num_attention_heads"
+        },
+        {
+          "attr": "num_hidden_layers",
+          "line": 864,
+          "rhs": "self.num_hidden_layers = config.vt_num_hidden_layers"
+        },
+        {
+          "attr": "hidden_size",
+          "line": 865,
+          "rhs": "self.hidden_size = config.vt_hidden_size"
+        },
+        {
+          "attr": "intermediate_size",
+          "line": 866,
+          "rhs": "self.intermediate_size = config.vt_intermediate_size"
+        },
+        {
+          "attr": "merge_kernel_size",
+          "line": 867,
+          "rhs": "self.merge_kernel_size = config.merge_kernel_size"
+        },
+        {
+          "attr": "merge_type",
+          "line": 868,
+          "rhs": "self.merge_type = config.merge_type"
+        },
+        {
+          "attr": "_attn_implementation",
+          "line": 869,
+          "rhs": "self._attn_implementation = config._attn_implementation"
+        },
+        {
+          "attr": "qkv_hidden_size",
+          "line": 870,
+          "rhs": "self.qkv_hidden_size = getattr(config, 'qkv_hidden_size', None)"
+        },
+        {
+          "attr": "norm_type",
+          "line": 871,
+          "rhs": "self.norm_type = getattr(config, 'norm_type', 'layernorm')"
+        },
+        {
+          "attr": "attn_bias",
+          "line": 872,
+          "rhs": "self.attn_bias = getattr(config, 'attn_bias', True)"
+        },
+        {
+          "attr": "patch_embed_proj_bias",
+          "line": 873,
+          "rhs": "self.patch_embed_proj_bias = getattr(config, 'patch_embed_proj_bias',"
+        },
+        {
+          "attr": "mlp_type",
+          "line": 875,
+          "rhs": "self.mlp_type = getattr(config, 'mlp_type', 'mlp2')"
+        },
+        {
+          "attr": "linear_bias",
+          "line": 876,
+          "rhs": "self.linear_bias = getattr(config, 'linear_bias', True)"
+        },
+        {
+          "attr": "pos_emb_interpolation_mode",
+          "line": 877,
+          "rhs": "self.pos_emb_interpolation_mode = getattr("
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "ProjectorConfig",
+      "line": 881,
+      "bases": [],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "mm_projector_type",
+          "line": 884,
+          "rhs": "self.mm_projector_type = config.mm_projector_type"
+        },
+        {
+          "attr": "mm_hidden_size",
+          "line": 885,
+          "rhs": "self.mm_hidden_size = config.mm_hidden_size"
+        },
+        {
+          "attr": "hidden_size",
+          "line": 886,
+          "rhs": "self.hidden_size = config.text_hidden_size"
+        },
+        {
+          "attr": "merge_kernel_size",
+          "line": 887,
+          "rhs": "self.merge_kernel_size = config.merge_kernel_size"
+        },
+        {
+          "attr": "projector_hidden_act",
+          "line": 888,
+          "rhs": "self.projector_hidden_act = config.projector_hidden_act"
+        },
+        {
+          "attr": "projector_ln_eps",
+          "line": 889,
+          "rhs": "self.projector_ln_eps = config.projector_ln_eps"
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "KimiK3ForConditionalGeneration",
+      "line": 893,
+      "bases": [
+        "KimiK3PreTrainedModel"
+      ],
+      "nn_module_like": false,
+      "has_forward": true,
+      "methods": [
+        "_supports_default_dynamic_cache",
+        "__init__",
+        "get_input_embeddings",
+        "set_input_embeddings",
+        "get_output_embeddings",
+        "set_output_embeddings",
+        "set_decoder",
+        "get_decoder",
+        "tie_weights",
+        "resize_token_embeddings",
+        "_merge_input_ids_with_image_features",
+        "_extract_image_features",
+        "forward",
+        "prepare_inputs_for_generation",
+        "_reorder_cache"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "vision_tower",
+          "line": 903,
+          "rhs": "self.vision_tower = MoonViT3dPretrainedModel(vt_config)"
+        },
+        {
+          "attr": "language_model",
+          "line": 919,
+          "rhs": "self.language_model = KimiLinearForCausalLM(config.text_config)"
+        },
+        {
+          "attr": "mm_projector",
+          "line": 907,
+          "rhs": "self.mm_projector = IdentityMap()"
+        },
+        {
+          "attr": "vision_tower",
+          "line": 924,
+          "rhs": "self.vision_tower = self.vision_tower.to(dtype=target_dtype)"
+        },
+        {
+          "attr": "mm_projector",
+          "line": 925,
+          "rhs": "self.mm_projector = self.mm_projector.to(dtype=target_dtype)"
+        },
+        {
+          "attr": "mm_projector",
+          "line": 909,
+          "rhs": "self.mm_projector = MLP(proj_config)"
+        },
+        {
+          "attr": "mm_projector",
+          "line": 911,
+          "rhs": "self.mm_projector = PatchMergerMLP(proj_config)"
+        },
+        {
+          "attr": "mm_projector",
+          "line": 913,
+          "rhs": "self.mm_projector = PatchMergerMLPV2(proj_config)"
+        }
+      ],
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "name": "SituAndMul",
+      "line": 64,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "beta",
+          "line": 72,
+          "rhs": "self.beta = beta"
+        },
+        {
+          "attr": "linear_beta",
+          "line": 73,
+          "rhs": "self.linear_beta = linear_beta"
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiDynamicCache",
+      "line": 120,
+      "bases": [],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__",
+        "__len__",
+        "update",
+        "reorder_cache",
+        "get_seq_length",
+        "get_mask_sizes",
+        "has_previous_state"
+      ],
+      "class_attrs": {
+        "is_compileable": false
+      },
+      "init_outline": [
+        {
+          "attr": "config",
+          "line": 129,
+          "rhs": "self.config = config"
+        },
+        {
+          "attr": "transformer_layers",
+          "line": 141,
+          "rhs": "self.transformer_layers = ["
+        },
+        {
+          "attr": "last_linear_layer",
+          "line": 147,
+          "rhs": "self.last_linear_layer = linear_layers[-1] if linear_layers else -1"
+        },
+        {
+          "attr": "conv_states",
+          "line": 149,
+          "rhs": "self.conv_states = [None for _ in range(config.num_hidden_layers)]"
+        },
+        {
+          "attr": "recurrent_states",
+          "line": 150,
+          "rhs": "self.recurrent_states = [None for _ in range(config.num_hidden_layers)]"
+        },
+        {
+          "attr": "key_cache",
+          "line": 151,
+          "rhs": "self.key_cache = [None for _ in range(config.num_hidden_layers)]"
+        },
+        {
+          "attr": "value_cache",
+          "line": 152,
+          "rhs": "self.value_cache = [None for _ in range(config.num_hidden_layers)]"
+        },
+        {
+          "attr": "layer_types",
+          "line": 132,
+          "rhs": "self.layer_types = []"
+        },
+        {
+          "attr": "layer_types",
+          "line": 139,
+          "rhs": "self.layer_types = [\"full_attention\"] * config.num_hidden_layers"
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiRMSNorm",
+      "line": 226,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "weight",
+          "line": 229,
+          "rhs": "self.weight = nn.Parameter(torch.ones(hidden_size))"
+        },
+        {
+          "attr": "variance_epsilon",
+          "line": 230,
+          "rhs": "self.variance_epsilon = eps"
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiBlockSparseMLP",
+      "line": 242,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "config",
+          "line": 245,
+          "rhs": "self.config = config"
+        },
+        {
+          "attr": "ffn_dim",
+          "line": 246,
+          "rhs": "self.ffn_dim = config.intermediate_size if intermediate_size is None else intermediate_size"
+        },
+        {
+          "attr": "hidden_dim",
+          "line": 247,
+          "rhs": "self.hidden_dim = config.hidden_size if hidden_size is None else hidden_size"
+        },
+        {
+          "attr": "w1",
+          "line": 249,
+          "rhs": "self.w1 = nn.Linear(self.hidden_dim, self.ffn_dim, bias=False)   # gate"
+        },
+        {
+          "attr": "w2",
+          "line": 250,
+          "rhs": "self.w2 = nn.Linear(self.ffn_dim, self.hidden_dim, bias=False)   # down"
+        },
+        {
+          "attr": "w3",
+          "line": 251,
+          "rhs": "self.w3 = nn.Linear(self.hidden_dim, self.ffn_dim, bias=False)   # up"
+        },
+        {
+          "attr": "act_fn",
+          "line": 255,
+          "rhs": "self.act_fn = SituAndMul("
+        },
+        {
+          "attr": "act_fn",
+          "line": 260,
+          "rhs": "self.act_fn = ACT2FN[config.hidden_act]"
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiMLP",
+      "line": 273,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "config",
+          "line": 276,
+          "rhs": "self.config = config"
+        },
+        {
+          "attr": "hidden_size",
+          "line": 277,
+          "rhs": "self.hidden_size = config.hidden_size if hidden_size is None else hidden_size"
+        },
+        {
+          "attr": "intermediate_size",
+          "line": 278,
+          "rhs": "self.intermediate_size = config.intermediate_size if intermediate_size is None else intermediate_size"
+        },
+        {
+          "attr": "gate_proj",
+          "line": 279,
+          "rhs": "self.gate_proj = nn.Linear("
+        },
+        {
+          "attr": "up_proj",
+          "line": 281,
+          "rhs": "self.up_proj = nn.Linear("
+        },
+        {
+          "attr": "down_proj",
+          "line": 283,
+          "rhs": "self.down_proj = nn.Linear("
+        },
+        {
+          "attr": "act_fn",
+          "line": 287,
+          "rhs": "self.act_fn = SituAndMul("
+        },
+        {
+          "attr": "act_fn",
+          "line": 292,
+          "rhs": "self.act_fn = ACT2FN[config.hidden_act]"
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiMLAAttention",
+      "line": 335,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "config",
+          "line": 342,
+          "rhs": "self.config = config"
+        },
+        {
+          "attr": "layer_idx",
+          "line": 343,
+          "rhs": "self.layer_idx = layer_idx"
+        },
+        {
+          "attr": "hidden_size",
+          "line": 344,
+          "rhs": "self.hidden_size = config.hidden_size"
+        },
+        {
+          "attr": "num_heads",
+          "line": 345,
+          "rhs": "self.num_heads = config.num_attention_heads"
+        },
+        {
+          "attr": "num_key_value_heads",
+          "line": 346,
+          "rhs": "self.num_key_value_heads = config.num_key_value_heads"
+        },
+        {
+          "attr": "num_key_value_groups",
+          "line": 347,
+          "rhs": "self.num_key_value_groups = self.num_heads // self.num_key_value_heads"
+        },
+        {
+          "attr": "attention_dropout",
+          "line": 349,
+          "rhs": "self.attention_dropout = getattr(config, \"attention_dropout\", 0.0)"
+        },
+        {
+          "attr": "kv_a_proj_with_mqa",
+          "line": 378,
+          "rhs": "self.kv_a_proj_with_mqa = nn.Linear("
+        },
+        {
+          "attr": "kv_a_layernorm",
+          "line": 383,
+          "rhs": "self.kv_a_layernorm = KimiRMSNorm(self.kv_lora_rank)"
+        },
+        {
+          "attr": "kv_b_proj",
+          "line": 384,
+          "rhs": "self.kv_b_proj = nn.Linear("
+        },
+        {
+          "attr": "o_proj",
+          "line": 390,
+          "rhs": "self.o_proj = nn.Linear("
+        },
+        {
+          "attr": "is_causal",
+          "line": 395,
+          "rhs": "self.is_causal = True"
+        },
+        {
+          "attr": "use_output_gate",
+          "line": 398,
+          "rhs": "self.use_output_gate = getattr(config, \"mla_use_output_gate\", False)"
+        },
+        {
+          "attr": "rotary_emb",
+          "line": 403,
+          "rhs": "self.rotary_emb = None"
+        },
+        {
+          "attr": "q_lora_rank",
+          "line": 352,
+          "rhs": "self.q_lora_rank = config.q_lora_rank"
+        },
+        {
+          "attr": "qk_rope_head_dim",
+          "line": 353,
+          "rhs": "self.qk_rope_head_dim = config.qk_rope_head_dim"
+        },
+        {
+          "attr": "kv_lora_rank",
+          "line": 354,
+          "rhs": "self.kv_lora_rank = config.kv_lora_rank"
+        },
+        {
+          "attr": "v_head_dim",
+          "line": 355,
+          "rhs": "self.v_head_dim = config.v_head_dim"
+        },
+        {
+          "attr": "qk_nope_head_dim",
+          "line": 356,
+          "rhs": "self.qk_nope_head_dim = config.qk_nope_head_dim"
+        },
+        {
+          "attr": "q_head_dim",
+          "line": 357,
+          "rhs": "self.q_head_dim = self.qk_nope_head_dim + self.qk_rope_head_dim"
+        },
+        {
+          "attr": "use_nope",
+          "line": 358,
+          "rhs": "self.use_nope = config.mla_use_nope"
+        },
+        {
+          "attr": "scaling",
+          "line": 359,
+          "rhs": "self.scaling = self.q_head_dim ** (-0.5)"
+        },
+        {
+          "attr": "q_a_proj",
+          "line": 365,
+          "rhs": "self.q_a_proj = nn.Linear("
+        },
+        {
+          "attr": "q_a_layernorm",
+          "line": 368,
+          "rhs": "self.q_a_layernorm = KimiRMSNorm(self.q_lora_rank)"
+        },
+        {
+          "attr": "q_b_proj",
+          "line": 369,
+          "rhs": "self.q_b_proj = nn.Linear("
+        },
+        {
+          "attr": "q_proj",
+          "line": 375,
+          "rhs": "self.q_proj = nn.Linear("
+        },
+        {
+          "attr": "g_proj",
+          "line": 401,
+          "rhs": "self.g_proj = nn.Linear(self.hidden_size, projection_size, bias=False)"
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiDeltaAttention",
+      "line": 477,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "config",
+          "line": 480,
+          "rhs": "self.config = config"
+        },
+        {
+          "attr": "mode",
+          "line": 481,
+          "rhs": "self.mode = \"chunk\""
+        },
+        {
+          "attr": "hidden_size",
+          "line": 483,
+          "rhs": "self.hidden_size = config.hidden_size"
+        },
+        {
+          "attr": "conv_size",
+          "line": 484,
+          "rhs": "self.conv_size = config.linear_attn_config[\"short_conv_kernel_size\"]"
+        },
+        {
+          "attr": "head_dim",
+          "line": 485,
+          "rhs": "self.head_dim = config.linear_attn_config[\"head_dim\"]"
+        },
+        {
+          "attr": "num_heads",
+          "line": 486,
+          "rhs": "self.num_heads = config.linear_attn_config[\"num_heads\"]"
+        },
+        {
+          "attr": "head_k_dim",
+          "line": 487,
+          "rhs": "self.head_k_dim = self.head_dim"
+        },
+        {
+          "attr": "num_k_heads",
+          "line": 488,
+          "rhs": "self.num_k_heads = self.num_heads"
+        },
+        {
+          "attr": "layer_idx",
+          "line": 490,
+          "rhs": "self.layer_idx = layer_idx"
+        },
+        {
+          "attr": "q_proj",
+          "line": 498,
+          "rhs": "self.q_proj = nn.Linear("
+        },
+        {
+          "attr": "k_proj",
+          "line": 500,
+          "rhs": "self.k_proj = nn.Linear("
+        },
+        {
+          "attr": "v_proj",
+          "line": 502,
+          "rhs": "self.v_proj = nn.Linear(self.hidden_size, projection_size, bias=False)"
+        },
+        {
+          "attr": "q_conv1d",
+          "line": 504,
+          "rhs": "self.q_conv1d = ShortConvolution("
+        },
+        {
+          "attr": "k_conv1d",
+          "line": 509,
+          "rhs": "self.k_conv1d = ShortConvolution("
+        },
+        {
+          "attr": "v_conv1d",
+          "line": 514,
+          "rhs": "self.v_conv1d = ShortConvolution("
+        },
+        {
+          "attr": "A_log",
+          "line": 520,
+          "rhs": "self.A_log = torch.nn.Parameter(torch.log(torch.empty("
+        },
+        {
+          "attr": "f_a_proj",
+          "line": 523,
+          "rhs": "self.f_a_proj = nn.Linear(self.hidden_size, self.head_dim, bias=False)"
+        },
+        {
+          "attr": "f_b_proj",
+          "line": 524,
+          "rhs": "self.f_b_proj = nn.Linear(self.head_dim, projection_size, bias=False)"
+        },
+        {
+          "attr": "dt_bias",
+          "line": 526,
+          "rhs": "self.dt_bias = nn.Parameter("
+        },
+        {
+          "attr": "b_proj",
+          "line": 529,
+          "rhs": "self.b_proj = nn.Linear(self.hidden_size, self.num_heads, bias=False)"
+        },
+        {
+          "attr": "use_full_rank_gate",
+          "line": 531,
+          "rhs": "self.use_full_rank_gate = config.linear_attn_config.get(\"use_full_rank_gate\", False)"
+        },
+        {
+          "attr": "gate_lower_bound",
+          "line": 532,
+          "rhs": "self.gate_lower_bound = config.linear_attn_config.get(\"gate_lower_bound\", None)"
+        },
+        {
+          "attr": "o_norm",
+          "line": 539,
+          "rhs": "self.o_norm = FusedRMSNormGated("
+        },
+        {
+          "attr": "o_proj",
+          "line": 541,
+          "rhs": "self.o_proj = nn.Linear(projection_size, self.hidden_size, bias=False)"
+        },
+        {
+          "attr": "g_proj",
+          "line": 534,
+          "rhs": "self.g_proj = nn.Linear(self.hidden_size, projection_size, bias=False)"
+        },
+        {
+          "attr": "g_a_proj",
+          "line": 536,
+          "rhs": "self.g_a_proj = nn.Linear(self.hidden_size, self.head_dim, bias=False)"
+        },
+        {
+          "attr": "g_b_proj",
+          "line": 537,
+          "rhs": "self.g_b_proj = nn.Linear(self.head_dim, projection_size, bias=False)"
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiMoEGate",
+      "line": 666,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "reset_parameters",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "config",
+          "line": 678,
+          "rhs": "self.config = config"
+        },
+        {
+          "attr": "top_k",
+          "line": 679,
+          "rhs": "self.top_k = config.num_experts_per_token"
+        },
+        {
+          "attr": "num_experts",
+          "line": 680,
+          "rhs": "self.num_experts = config.num_experts"
+        },
+        {
+          "attr": "routed_scaling_factor",
+          "line": 681,
+          "rhs": "self.routed_scaling_factor = config.routed_scaling_factor"
+        },
+        {
+          "attr": "moe_router_activation_func",
+          "line": 682,
+          "rhs": "self.moe_router_activation_func = config.moe_router_activation_func"
+        },
+        {
+          "attr": "num_expert_group",
+          "line": 683,
+          "rhs": "self.num_expert_group = getattr(config, \"num_expert_group\", 1)"
+        },
+        {
+          "attr": "topk_group",
+          "line": 684,
+          "rhs": "self.topk_group = getattr(config, \"topk_group\", 1)"
+        },
+        {
+          "attr": "moe_renormalize",
+          "line": 687,
+          "rhs": "self.moe_renormalize = config.moe_renormalize"
+        },
+        {
+          "attr": "gating_dim",
+          "line": 688,
+          "rhs": "self.gating_dim = config.hidden_size"
+        },
+        {
+          "attr": "weight",
+          "line": 689,
+          "rhs": "self.weight = nn.Parameter("
+        },
+        {
+          "attr": "e_score_correction_bias",
+          "line": 693,
+          "rhs": "self.e_score_correction_bias = nn.Parameter("
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiSparseMoeBlock",
+      "line": 762,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward",
+        "moe_infer"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "config",
+          "line": 770,
+          "rhs": "self.config = config"
+        },
+        {
+          "attr": "hidden_dim",
+          "line": 771,
+          "rhs": "self.hidden_dim = config.hidden_size"
+        },
+        {
+          "attr": "num_experts",
+          "line": 772,
+          "rhs": "self.num_experts = config.num_experts"
+        },
+        {
+          "attr": "top_k",
+          "line": 773,
+          "rhs": "self.top_k = config.num_experts_per_token"
+        },
+        {
+          "attr": "moe_renormalize",
+          "line": 774,
+          "rhs": "self.moe_renormalize = config.moe_renormalize"
+        },
+        {
+          "attr": "use_latent_moe",
+          "line": 776,
+          "rhs": "self.use_latent_moe = getattr(config, \"routed_expert_hidden_size\", None) is not None"
+        },
+        {
+          "attr": "moe_hidden_size",
+          "line": 777,
+          "rhs": "self.moe_hidden_size = ("
+        },
+        {
+          "attr": "latent_moe_use_norm",
+          "line": 781,
+          "rhs": "self.latent_moe_use_norm = getattr(config, \"latent_moe_use_norm\", False)"
+        },
+        {
+          "attr": "ep_size",
+          "line": 783,
+          "rhs": "self.ep_size = 1"
+        },
+        {
+          "attr": "experts_per_rank",
+          "line": 784,
+          "rhs": "self.experts_per_rank = config.num_experts"
+        },
+        {
+          "attr": "ep_rank",
+          "line": 785,
+          "rhs": "self.ep_rank = 0"
+        },
+        {
+          "attr": "experts",
+          "line": 786,
+          "rhs": "self.experts = nn.ModuleList("
+        },
+        {
+          "attr": "gate",
+          "line": 796,
+          "rhs": "self.gate = KimiMoEGate(config)"
+        },
+        {
+          "attr": "shared_experts",
+          "line": 799,
+          "rhs": "self.shared_experts = KimiMLP("
+        },
+        {
+          "attr": "routed_expert_down_proj",
+          "line": 804,
+          "rhs": "self.routed_expert_down_proj = nn.Linear("
+        },
+        {
+          "attr": "routed_expert_up_proj",
+          "line": 807,
+          "rhs": "self.routed_expert_up_proj = nn.Linear("
+        },
+        {
+          "attr": "routed_expert_norm",
+          "line": 811,
+          "rhs": "self.routed_expert_norm = KimiRMSNorm("
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiDecoderLayer",
+      "line": 877,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward",
+        "_forward_attn_residual"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "hidden_size",
+          "line": 880,
+          "rhs": "self.hidden_size = config.hidden_size"
+        },
+        {
+          "attr": "config",
+          "line": 881,
+          "rhs": "self.config = config"
+        },
+        {
+          "attr": "layer_idx",
+          "line": 882,
+          "rhs": "self.layer_idx = layer_idx"
+        },
+        {
+          "attr": "input_layernorm",
+          "line": 901,
+          "rhs": "self.input_layernorm = KimiRMSNorm("
+        },
+        {
+          "attr": "post_attention_layernorm",
+          "line": 903,
+          "rhs": "self.post_attention_layernorm = KimiRMSNorm("
+        },
+        {
+          "attr": "use_attn_residuals",
+          "line": 907,
+          "rhs": "self.use_attn_residuals = getattr(config, \"attn_res_block_size\", None) is not None"
+        },
+        {
+          "attr": "is_linear_attn",
+          "line": 884,
+          "rhs": "self.is_linear_attn = True"
+        },
+        {
+          "attr": "self_attn",
+          "line": 885,
+          "rhs": "self.self_attn = KimiDeltaAttention("
+        },
+        {
+          "attr": "block_sparse_moe",
+          "line": 898,
+          "rhs": "self.block_sparse_moe = KimiSparseMoeBlock(config)"
+        },
+        {
+          "attr": "mlp",
+          "line": 900,
+          "rhs": "self.mlp = KimiMLP(config)"
+        },
+        {
+          "attr": "attn_res_block_size",
+          "line": 909,
+          "rhs": "self.attn_res_block_size = config.attn_res_block_size"
+        },
+        {
+          "attr": "self_attention_res_norm",
+          "line": 910,
+          "rhs": "self.self_attention_res_norm = KimiRMSNorm("
+        },
+        {
+          "attr": "mlp_res_norm",
+          "line": 912,
+          "rhs": "self.mlp_res_norm = KimiRMSNorm("
+        },
+        {
+          "attr": "self_attention_res_proj",
+          "line": 914,
+          "rhs": "self.self_attention_res_proj = nn.Linear("
+        },
+        {
+          "attr": "mlp_res_proj",
+          "line": 916,
+          "rhs": "self.mlp_res_proj = nn.Linear("
+        },
+        {
+          "attr": "is_linear_attn",
+          "line": 888,
+          "rhs": "self.is_linear_attn = False"
+        },
+        {
+          "attr": "self_attn",
+          "line": 889,
+          "rhs": "self.self_attn = KimiMLAAttention("
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiPreTrainedModel",
+      "line": 1049,
+      "bases": [
+        "PreTrainedModel"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "_init_weights"
+      ],
+      "class_attrs": {
+        "config_class": "config_class = KimiLinearConfig",
+        "base_model_prefix": "model",
+        "supports_gradient_checkpointing": true,
+        "_no_split_modules": [
+          "KimiDecoderLayer"
+        ],
+        "_skip_keys_device_placement": "past_key_values",
+        "_supports_flash_attn_2": true,
+        "_can_record_outputs": "_can_record_outputs = {",
+        "_is_stateful": true
+      },
+      "init_outline": [],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiLinearModel",
+      "line": 1090,
+      "bases": [
+        "KimiPreTrainedModel"
+      ],
+      "nn_module_like": false,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "_update_linear_attn_mask",
+        "forward",
+        "_apply_output_attn_res"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "padding_idx",
+          "line": 1093,
+          "rhs": "self.padding_idx = config.pad_token_id"
+        },
+        {
+          "attr": "vocab_size",
+          "line": 1094,
+          "rhs": "self.vocab_size = config.vocab_size"
+        },
+        {
+          "attr": "embed_tokens",
+          "line": 1096,
+          "rhs": "self.embed_tokens = nn.Embedding("
+        },
+        {
+          "attr": "layers",
+          "line": 1098,
+          "rhs": "self.layers = nn.ModuleList([KimiDecoderLayer("
+        },
+        {
+          "attr": "norm",
+          "line": 1100,
+          "rhs": "self.norm = KimiRMSNorm("
+        },
+        {
+          "attr": "use_attn_residuals",
+          "line": 1103,
+          "rhs": "self.use_attn_residuals = getattr(config, \"attn_res_block_size\", None) is not None"
+        },
+        {
+          "attr": "_use_flash_attention_2",
+          "line": 1119,
+          "rhs": "self._use_flash_attention_2 = config._attn_implementation == \"flash_attention_2\""
+        },
+        {
+          "attr": "gradient_checkpointing",
+          "line": 1120,
+          "rhs": "self.gradient_checkpointing = False"
+        },
+        {
+          "attr": "output_attn_res_norm",
+          "line": 1105,
+          "rhs": "self.output_attn_res_norm = KimiRMSNorm("
+        },
+        {
+          "attr": "output_attn_res_proj",
+          "line": 1107,
+          "rhs": "self.output_attn_res_proj = nn.Linear("
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "KimiLinearForCausalLM",
+      "line": 1236,
+      "bases": [
+        "KimiPreTrainedModel",
+        "GenerationMixin"
+      ],
+      "nn_module_like": false,
+      "has_forward": true,
+      "methods": [
+        "_supports_default_dynamic_cache",
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {
+        "_tied_weights_keys": [
+          "lm_head.weight"
+        ]
+      },
+      "init_outline": [
+        {
+          "attr": "model",
+          "line": 1245,
+          "rhs": "self.model = KimiLinearModel(config)"
+        },
+        {
+          "attr": "vocab_size",
+          "line": 1246,
+          "rhs": "self.vocab_size = config.vocab_size"
+        },
+        {
+          "attr": "lm_head",
+          "line": 1247,
+          "rhs": "self.lm_head = nn.Linear("
+        }
+      ],
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "name": "TikTokenTokenizer",
+      "line": 22,
+      "bases": [
+        "PreTrainedTokenizer"
+      ],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [
+        "__init__",
+        "_encode_text_piece",
+        "encode",
+        "decode",
+        "_split_whitespaces_or_nonwhitespaces",
+        "_encode_chat_segments",
+        "_truncate",
+        "_format_chat_token_output",
+        "vocab_size",
+        "get_vocab",
+        "_tokenize",
+        "_convert_token_to_id",
+        "_convert_id_to_token",
+        "clean_up_tokenization",
+        "convert_tokens_to_string",
+        "save_vocabulary",
+        "apply_chat_template"
+      ],
+      "class_attrs": {
+        "vocab_files_names": "vocab_files_names = VOCAB_FILES_NAMES",
+        "model_input_names": [
+          "input_ids",
+          "attention_mask"
+        ],
+        "num_reserved_special_tokens": 256,
+        "pat_str": "pat_str = \"|\".join(["
+      },
+      "init_outline": [
+        {
+          "attr": "vocab_file",
+          "line": 98,
+          "rhs": "self.vocab_file = vocab_file"
+        },
+        {
+          "attr": "special_tokens",
+          "line": 101,
+          "rhs": "self.special_tokens = {"
+        },
+        {
+          "attr": "model",
+          "line": 107,
+          "rhs": "self.model = tiktoken.Encoding("
+        },
+        {
+          "attr": "byte_encoder",
+          "line": 126,
+          "rhs": "self.byte_encoder = bytes_to_unicode()"
+        },
+        {
+          "attr": "byte_decoder",
+          "line": 127,
+          "rhs": "self.byte_decoder = {v: k for k, v in self.byte_encoder.items()}"
+        },
+        {
+          "attr": "decoder",
+          "line": 129,
+          "rhs": "self.decoder = {}"
+        },
+        {
+          "attr": "encoder",
+          "line": 138,
+          "rhs": "self.encoder = {}"
+        },
+        {
+          "attr": "all_special_ids_set",
+          "line": 152,
+          "rhs": "self.all_special_ids_set = set(self.all_special_ids)"
+        }
+      ],
+      "file": "tokenization_kimi.py"
+    }
+  ],
+  "config_like": [
+    {
+      "file": "configuration_kimi_k3.py",
+      "line": 6,
+      "name": "KimiLinearConfig",
+      "fields": {
+        "model_type": "kimi_linear",
+        "keys_to_ignore_at_inference": [
+          "past_key_values"
+        ]
+      }
+    },
+    {
+      "file": "kimi_k3_processor.py",
+      "line": 18,
+      "name": "KimiK3Processor",
+      "fields": {
+        "attributes": [
+          "image_processor",
+          "tokenizer"
+        ],
+        "valid_kwargs": [
+          "chat_template"
+        ],
+        "image_processor_class": "AutoImageProcessor",
+        "tokenizer_class": "AutoTokenizer"
+      }
+    },
+    {
+      "file": "modeling_kimi_k3.py",
+      "line": 649,
+      "name": "MoonViT3dPretrainedModel",
+      "fields": {
+        "model_type": "moonvit3d",
+        "_no_split_modules": [
+          "MoonViTEncoderLayer"
+        ],
+        "_supports_flash_attn_2": true,
+        "_supports_sdpa": true
+      }
+    },
+    {
+      "file": "modeling_kimi_k3.py",
+      "line": 818,
+      "name": "KimiK3PreTrainedModel",
+      "fields": {
+        "config_class": "config_class = KimiK3Config",
+        "base_model_prefix": "model",
+        "_no_split_modules": [
+          "MoonViT3dPretrainedModel",
+          "MoonViTEncoderLayer",
+          "KimiDecoderLayer",
+          "PatchMergerMLP",
+          "PatchMergerMLPV2"
+        ],
+        "_skip_keys_device_placement": "past_key_values",
+        "_supports_flash_attn_2": true,
+        "_supports_sdpa": false
+      }
+    },
+    {
+      "file": "modeling_kimi_linear.py",
+      "line": 1049,
+      "name": "KimiPreTrainedModel",
+      "fields": {
+        "config_class": "config_class = KimiLinearConfig",
+        "base_model_prefix": "model",
+        "supports_gradient_checkpointing": true,
+        "_no_split_modules": [
+          "KimiDecoderLayer"
+        ],
+        "_skip_keys_device_placement": "past_key_values",
+        "_supports_flash_attn_2": true,
+        "_can_record_outputs": "_can_record_outputs = {",
+        "_is_stateful": true
+      }
+    },
+    {
+      "file": "tokenization_kimi.py",
+      "line": 22,
+      "name": "TikTokenTokenizer",
+      "fields": {
+        "vocab_files_names": "vocab_files_names = VOCAB_FILES_NAMES",
+        "model_input_names": [
+          "input_ids",
+          "attention_mask"
+        ],
+        "num_reserved_special_tokens": 256,
+        "pat_str": "pat_str = \"|\".join(["
+      }
+    }
+  ],
+  "dist_refs": [],
+  "device_refs": [],
+  "weight_refs": [],
+  "toplevel_calls": [
+    {
+      "line": 1,
+      "code": "\"\"\"Kimi K3 XTML encoding helpers.；；This module keeps chat rendering in Python.",
+      "file": "encoding_k3.py"
+    },
+    {
+      "line": 1,
+      "code": "\"\"\"Kimi-K3 processor: wraps vision processor + tokenizer into a single interface.；；Chat rendering (including XTML tool-r",
+      "file": "kimi_k3_processor.py"
+    },
+    {
+      "line": 13,
+      "code": "logger = logging.get_logger(__name__)；；# ── KimiK3Processor ───────────────────────────────────────────────────",
+      "file": "kimi_k3_processor.py"
+    },
+    {
+      "line": 1,
+      "code": "\"\"\"Image processor class for Kimi-K3.；\"\"\"；",
+      "file": "kimi_k3_vision_processing.py"
+    },
+    {
+      "line": 36,
+      "code": "try:；    from transformers.activations import PytorchGELUTanh；except ImportError:",
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "line": 53,
+      "code": "if is_flash_attn_2_available():；    from flash_attn import flash_attn_varlen_func；else:",
+      "file": "modeling_kimi_k3.py"
+    },
+    {
+      "line": 46,
+      "code": "try:；    from fla.modules import FusedRMSNormGated, ShortConvolution；    from fla.ops.kda import chunk_kda, fused_recurr",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 57,
+      "code": "assert version.parse(transformers.__version__) >= version.parse(\"4.56.0\"), \\；    \"Please upgrade transformers to >= 4.56",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 60,
+      "code": "logger = logging.get_logger(__name__)；；",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 239,
+      "code": "ALL_LAYERNORM_LAYERS.append(KimiRMSNorm)；；",
+      "file": "modeling_kimi_linear.py"
+    },
+    {
+      "line": 13,
+      "code": "try:；    from .encoding_k3 import build_chat_segments, is_batched_conversation；except ImportError:  # pragma: no cover -",
+      "file": "tokenization_kimi.py"
+    },
+    {
+      "line": 18,
+      "code": "logger = getLogger(__name__)；VOCAB_FILES_NAMES = {\"vocab_file\": \"tiktoken.model\"}；",
+      "file": "tokenization_kimi.py"
+    }
+  ],
+  "syntax_errors": []
+}

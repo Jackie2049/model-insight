@@ -1,0 +1,5343 @@
+{
+  "ir_version": "1.0",
+  "model": {
+    "name": "Kimi-K3（KimiK3ForConditionalGeneration = MoonViT3d 视觉塔 + PatchMergerMLPV2 投影器 + KimiLinearForCausalLM 93 层 KDA/MLA 混合语言模型）",
+    "source_files_hash": {
+      "configuration_kimi_k3.py": "735eb9ebe593e17d231e08e1df7f7be9b5ee0e079f511aa201f9572077b416ae",
+      "encoding_k3.py": "49ff03305fdc4be26867972788d36150b67f8a9e852e62bb7959d87482223676",
+      "kimi_k3_processor.py": "ec9f7e86d2ab0eee07a8e7e7c037046e77ac3c25a710ad1298ec13be3b585b54",
+      "kimi_k3_vision_processing.py": "d122b30bfd3a51a6f05d4bfcfda1e657827322b1353f7caefeebc2835d7736b5",
+      "media_utils.py": "78403540328f9847d6b7ebc5c44eb2e6a752863de0afb7d0710728bb161dc60d",
+      "modeling_kimi_k3.py": "b9171c96726eda55234c92ac8dfae7e24c512fda68968ae8f2c3782b42665ea2",
+      "modeling_kimi_linear.py": "9e3564c70ac21854ce5a090cc946c5dc76b70d1050ef50840449181a20fff44a",
+      "tokenization_kimi.py": "f28ea66e2d862a2a5814970b2ce40c2f7d8296ff09aed90a7e7def689b906944"
+    },
+    "config_snapshot": {
+      "hidden_size": 7168,
+      "num_hidden_layers": 93,
+      "vocab_size": 163840,
+      "kda_layers_1indexed_count": 69,
+      "full_attn_layers_1indexed_count": 24,
+      "mla": {
+        "q_lora_rank": 1536,
+        "kv_lora_rank": 512,
+        "qk_nope": 128,
+        "qk_rope": 64,
+        "v_head_dim": 128,
+        "num_heads": 96,
+        "mla_use_output_gate": true,
+        "rope旋转": "本毛坯 MLA 前向未调用 RoPE（rotary_emb=None）"
+      },
+      "kda": {
+        "num_heads": 96,
+        "head_dim": 128,
+        "short_conv_kernel_size": 4,
+        "use_full_rank_gate": true,
+        "gate_lower_bound": -5.0,
+        "modes": {
+          "prefill": "chunk",
+          "decode": "fused_recurrent"
+        }
+      },
+      "moe": {
+        "num_experts": 896,
+        "top_k": 16,
+        "moe_intermediate_size": 3072,
+        "routed_expert_hidden_size": 3584,
+        "num_shared_experts": 2,
+        "latent_moe_use_norm": true,
+        "router": "sigmoid",
+        "routed_scaling_factor": 1.0,
+        "num_expert_group": 1
+      },
+      "dense_ffn_intermediate": 33792,
+      "hidden_act": "situ(beta=4.0,linear_beta=25.0,fp32内部)",
+      "attn_res_block_size": 12,
+      "vision": {
+        "hidden_size": 1024,
+        "layers": 27,
+        "heads": 12,
+        "qkv_hidden_size": 1536,
+        "mlp_dim": 4096,
+        "patch_size": 14,
+        "pos_emb": "64x64x4_divided_fixed",
+        "merge": [
+          2,
+          2
+        ],
+        "merge_type": "sd2_tpool",
+        "attention": "flash_attn_varlen(生产)/eager(毛坯自带回退)"
+      },
+      "projector": {
+        "mm_hidden_size": 4096,
+        "text_hidden_size": 7168
+      },
+      "dtype": "bfloat16"
+    },
+    "scale_note": "S2a 逻辑分析阶段按 config.json 全量维度符号化推导（H=7168/93 层/896 专家/词表 163840 等），无实例化缩水；实例化缩水发生在抓图阶段（CPU 时长约束），届时在 capture spec 与融合 IR 的 scale_note 中逐项声明；结构分支维度（KDA/MLA/latent MoE/门控/短卷积/attn_res/situ 等）一律保真不缩。"
+  },
+  "contract": {
+    "scenarios": [
+      {
+        "id": "prefill_vision"
+      },
+      {
+        "id": "prefill_text"
+      },
+      {
+        "id": "decode"
+      }
+    ],
+    "replacements": [],
+    "coverage": {
+      "layer_types": {
+        "kda_dense": "语言层 layer_idx=0（唯一）：KimiDeltaAttention + dense KimiMLP",
+        "kda_moe": "语言层 layer_idx∈{1,2,4,…,91}：KimiDeltaAttention + KimiSparseMoeBlock（68 层；is_kda_layer 为 +1 语义，configuration_kimi_k3.py:152-156）",
+        "mla_moe": "语言层 layer_idx∈{3,7,11,…,92}：KimiMLAAttention + KimiSparseMoeBlock（24 层）",
+        "moonvit_layer": "视觉塔 MoonViTEncoderLayer ×27（packed varlen + 2D RoPE + MLP2）",
+        "patchmergerv2": "投影器 PatchMergerMLPV2（全局唯一实例）",
+        "外围组件": "patch_embed/pos_emb/rope_2d/tpool_merge/图文合并/embed_tokens/final norm/output_attn_res/KimiDynamicCache/lm_head"
+      },
+      "captured": [],
+      "folded": "S2a 阶段无实测（captured 为空是本阶段事实）；抓图计划以代表层覆盖：kda_dense@layer0、kda_moe@layer1、mla_moe@layer3、moonvit_layer@encoder.0、patchmergerv2 全体、专家 micro 若干；93 层语言层与 27 层视觉层按模板折叠（同型层仅权重不同）。"
+    }
+  },
+  "nodes": [
+    {
+      "path": "vision_tower",
+      "stage": "视觉塔 · 整体（MoonViT3dPretrainedModel）",
+      "ops_flow": [
+        "patch_embed",
+        "encoder(27层,varlen)",
+        "tpool_patch_merger(时间池化+2×2空间合并,普通函数)"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          3,
+          14,
+          14
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            694,
+            717
+          ],
+          "symbol": "MoonViT3dPretrainedModel.forward",
+          "conclusion": "输入 pixel_values (L,3,14,14)（已 patch 化）+ grid_thws(N,3)；主输入为 pixel_values",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            1107,
+            1111
+          ],
+          "symbol": "KimiK3ForConditionalGeneration._extract_image_features",
+          "conclusion": "调用点：pixel_values 先 .to(vision_tower.patch_embed.proj.weight.dtype)，输出逐图 list[(n_i,4,1024)]",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "输出为逐图 list[(h/2·w/2, 4, 1024)]；tpool_patch_merger 为普通函数，与塔共享树路径，融合按模块粒度对齐"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.patch_embed",
+      "stage": "视觉塔 · patch 嵌入（MoonVision3dPatchEmbed）",
+      "ops_flow": [
+        "conv2d_proj",
+        "view(L,Cv)",
+        "pos_emb_add"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          3,
+          14,
+          14
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            325,
+            338
+          ],
+          "symbol": "MoonVision3dPatchEmbed.forward",
+          "conclusion": "x=self.proj(x).view(L,-1) 后 pos_emb(x,grid_thws)；主输入 x (L,3,14,14)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.patch_embed.proj",
+      "stage": "视觉塔 · Conv2d 投影",
+      "ops_flow": [
+        "conv2d(k14,s14,bias=False)",
+        "reshape/view"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          3,
+          14,
+          14
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            308,
+            312
+          ],
+          "symbol": "MoonVision3dPatchEmbed.__init__",
+          "conclusion": "proj=Conv2d(3→1024,kernel=14,stride=14,bias=False)（config patch_embed_proj_bias=False）",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            335,
+            335
+          ],
+          "symbol": "MoonVision3dPatchEmbed.forward",
+          "conclusion": "卷积输出 (L,1024,1,1) 随即 view 成 (L,1024)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.patch_embed.pos_emb",
+      "stage": "视觉塔 · 可学习 2D 位置嵌入",
+      "ops_flow": [
+        "per_image_grid",
+        "sincos_time_weight",
+        "bilinear_interp(尺寸不等时)",
+        "tile_repeat_t",
+        "elementwise_add"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            260,
+            283
+          ],
+          "symbol": "Learnable2DInterpPosEmbDivided_fixed.forward",
+          "conclusion": "逐图：网格=嵌入尺寸(64×64)时直接 flatten，否则 get_rope_shape 插值；t>1 时 repeat 并加时间 sincos；out=x+cat(pos_embs)；主输入 x (L,1024)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            149,
+            169
+          ],
+          "symbol": "get_rope_shape_decorate",
+          "conclusion": "插值函数带 @torch.compile(dynamic=True)，抓图可能受 dynamo 影响（数学不变）",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            315,
+            320
+          ],
+          "symbol": "MoonVision3dPatchEmbed.__init__",
+          "conclusion": "嵌入尺寸=pos_emb_height×width×time=64×64×4，dim=1024",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": [
+        "@torch.compile 在 TorchVista 抓图下的表现待实测判读"
+      ]
+    },
+    {
+      "path": "vision_tower.encoder",
+      "stage": "视觉塔 · 编码器（MoonViT3dEncoder）",
+      "ops_flow": [
+        "get_freqs_cis(2D_RoPE复数表)",
+        "cu_seqlens(grid_thws cumsum,int32)",
+        "27×encoder_layer",
+        "final_layernorm"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            595,
+            618
+          ],
+          "symbol": "MoonViT3dEncoder.forward",
+          "conclusion": "rope_freqs_cis=(L,dim/2=64) complex64（get_freqs_cis， Rope2DPosEmbRepeated 方法调用）；cu_seqlens 由 t·h·w cumsum 得 int32；27 层循环后 final_layernorm",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            378,
+            434
+          ],
+          "symbol": "Rope2DPosEmbRepeated.get_freqs_cis",
+          "conclusion": "逐图生成 (t·h·w, 64) 复数频率表（dim%4==0 约束）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "rope_2d 无独立 forward（get_freqs_cis 方法调用），与 encoder 共享树路径"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.{j}",
+      "stage": "视觉塔 · 编码层 {j}（MoonViTEncoderLayer，j∈0..26）",
+      "ops_flow": [
+        "norm0",
+        "wqkv_fused",
+        "unbind3",
+        "apply_rope",
+        "varlen_attention(eager回退)",
+        "wo",
+        "residual",
+        "norm1",
+        "mlp2",
+        "residual"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            545,
+            564
+          ],
+          "symbol": "MoonViTEncoderLayer.forward",
+          "conclusion": "residual→norm0→attention_qkvpacked→残差→norm1→mlp→残差；主输入 (L,1024)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            519,
+            543
+          ],
+          "symbol": "MoonViTEncoderLayer.attention_qkvpacked",
+          "conclusion": "wqkv(L,4608)→view(L,3,12,128)→unbind→apply_rope→VL_VISION_ATTENTION_FUNCTIONS[attn_implementation]→wo(attn_out)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.{j}.norm0",
+      "stage": "视觉塔 · 编码层 {j} 注意力前 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(torch.nn.RMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            489,
+            491
+          ],
+          "symbol": "MoonViTEncoderLayer.__init__",
+          "conclusion": "norm_type='rmsnorm' → norm0=nn.RMSNorm(1024)（torch 内置）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.{j}.wqkv",
+      "stage": "视觉塔 · 编码层 {j} QKV 融合投影",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            502,
+            504
+          ],
+          "symbol": "MoonViTEncoderLayer.__init__",
+          "conclusion": "wqkv=Linear(1024,1536×3=4608,bias=attn_bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.{j}.wo",
+      "stage": "视觉塔 · 编码层 {j} 注意力输出投影",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Qkv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            505,
+            505
+          ],
+          "symbol": "MoonViTEncoderLayer.__init__",
+          "conclusion": "wo=Linear(qkv_hidden_size=Hv·Dv=1536, hidden_dim=1024, bias=False)——主输入宽=qkv_hidden_size（packed qkv 维）",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            507,
+            542
+          ],
+          "symbol": "MoonViTEncoderLayer.attention_qkvpacked",
+          "conclusion": "varlen attention 返回 packed (L, Hv·Dv)（2D，无 3D 中间视图），:542 attn_out = self.wo(attn_out) 直接传入",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.{j}.mlp",
+      "stage": "视觉塔 · 编码层 {j} MLP2",
+      "ops_flow": [
+        "fc0",
+        "pytorch_gelu_tanh",
+        "fc1"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            495,
+            498
+          ],
+          "symbol": "MoonViTEncoderLayer.__init__",
+          "conclusion": "mlp=MLP2([1024,4096,1024],bias=linear_bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            686,
+            686
+          ],
+          "symbol": "MoonViT3dPretrainedModel.__init__",
+          "conclusion": "activation=PytorchGELUTanh()",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.{j}.mlp.fc0",
+      "stage": "视觉塔 · 编码层 {j} MLP 升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            447,
+            447
+          ],
+          "symbol": "MLP2.__init__",
+          "conclusion": "fc0=Linear(1024,4096)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.{j}.mlp.fc1",
+      "stage": "视觉塔 · 编码层 {j} MLP 降维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          4096
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            448,
+            448
+          ],
+          "symbol": "MLP2.__init__",
+          "conclusion": "fc1=Linear(4096,1024)；主输入为激活后 (L,4096)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.{j}.norm1",
+      "stage": "视觉塔 · 编码层 {j} MLP 前 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(torch.nn.RMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            490,
+            491
+          ],
+          "symbol": "MoonViTEncoderLayer.__init__",
+          "conclusion": "norm1=nn.RMSNorm(1024)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.final_layernorm",
+      "stage": "视觉塔 · 末端 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(torch.nn.RMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            587,
+            591
+          ],
+          "symbol": "MoonViT3dEncoder.__init__",
+          "conclusion": "final_layernorm=nn.RMSNorm(hidden_dim=1024)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            617,
+            618
+          ],
+          "symbol": "MoonViT3dEncoder.forward",
+          "conclusion": "27 层后调用",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "vision_tower.encoder.rope_2d",
+      "stage": "视觉塔 · 2D RoPE 频率表（方法调用，无独立 forward）",
+      "ops_flow": [
+        "arange_outer(h,w)",
+        "polar_complex64"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          64
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "complex64",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            378,
+            434
+          ],
+          "symbol": "Rope2DPosEmbRepeated.get_freqs_cis",
+          "conclusion": "输出 (L,64) complex64 频率表",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            341,
+            341
+          ],
+          "symbol": "Rope2DPosEmbRepeated",
+          "conclusion": "该类无 forward，仅 get_freqs_cis 方法——模块树抓图不产生独立节点",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "文档节点：预期终态 llm_only（方法调用不产生模块节点，形状结论由 encoder 节点 ops_flow 旁证）"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "mm_projector",
+      "stage": "投影器 · PatchMergerMLPV2",
+      "ops_flow": [
+        "list_concat_view",
+        "proj(Linear-GELU-Linear)",
+        "post_norm",
+        "split_per_image"
+      ],
+      "logical": {
+        "shape": [
+          "Nv0",
+          4,
+          "Cv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            803,
+            809
+          ],
+          "symbol": "PatchMergerMLPV2.forward",
+          "conclusion": "list 输入逐项 view(n_i,-1) 后 concat → (N,4096) → proj → post_norm → split；主输入为 list 首元素 (n_0,4,1024)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            1154,
+            1155
+          ],
+          "symbol": "KimiK3ForConditionalGeneration.forward",
+          "conclusion": "image_features=mm_projector(image_features list)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "主输入是逐图 list[(n_i,4,1024)]，融合按首元素 (Nv0,4,Cv) 对比"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "mm_projector.proj.0",
+      "stage": "投影器 · 升维线性",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Nv",
+          4096
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            790,
+            792
+          ],
+          "symbol": "PatchMergerMLPV2.__init__",
+          "conclusion": "proj=Sequential：Linear(4096,4096,bias=False)→GELU→Linear(4096,7168,bias=False)；hidden_size=1024×2×2=4096",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "mm_projector.proj.1",
+      "stage": "投影器 · GELU",
+      "ops_flow": [
+        "gelu(nn.GELU)"
+      ],
+      "logical": {
+        "shape": [
+          "Nv",
+          4096
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            792,
+            792
+          ],
+          "symbol": "PatchMergerMLPV2.__init__",
+          "conclusion": "Sequential 第 2 项 nn.GELU()",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "mm_projector.proj.2",
+      "stage": "投影器 · 降维至语言宽度",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Nv",
+          4096
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            793,
+            793
+          ],
+          "symbol": "PatchMergerMLPV2.__init__",
+          "conclusion": "Linear(4096→7168,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "mm_projector.post_norm",
+      "stage": "投影器 · 末端 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(torch.nn.RMSNorm,fp32内部)",
+        "split_per_image"
+      ],
+      "logical": {
+        "shape": [
+          "Nv",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            795,
+            795
+          ],
+          "symbol": "PatchMergerMLPV2.__init__",
+          "conclusion": "post_norm=nn.RMSNorm(7168,eps=1e-5)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            808,
+            809
+          ],
+          "symbol": "PatchMergerMLPV2.forward",
+          "conclusion": "x=post_norm(proj(x)) 后按各图长度 split 回 list",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "先 proj 后 post_norm（归一化在投影之后）"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "merge",
+      "stage": "顶层 · 图文占位符合并（根级普通方法）",
+      "ops_flow": [
+        "placeholder_mask(163605)",
+        "feature_expand_by_lengths",
+        "embed_scatter",
+        "pad_zero",
+        "position_ids_recompute(cumsum-1)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            958,
+            1090
+          ],
+          "symbol": "KimiK3ForConditionalGeneration._merge_input_ids_with_image_features",
+          "conclusion": "把 media_placeholder_token_id=163605 的位置按 feature_lengths 展开为图像特征，产出 final_embedding(B,S',7168)/final_attention_mask(B,S')/position_ids(B,S')；pad 位置 embedding 置零",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            1145,
+            1166
+          ],
+          "symbol": "KimiK3ForConditionalGeneration.forward",
+          "conclusion": "embed_tokens 查表 → _extract_image_features → mm_projector → 本方法合并",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "文档节点：根级方法与模型根共享树路径（空路径不可对齐），预期终态 llm_only；其输入输出形状由 vision_tower/mm_projector/embed_tokens 与 language_model 侧记录旁证"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.embed_tokens",
+      "stage": "语言模型 · 词嵌入",
+      "ops_flow": [
+        "embedding_lookup(padding_idx=163839)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "int64",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            1096,
+            1097
+          ],
+          "symbol": "KimiLinearModel.__init__",
+          "conclusion": "embed_tokens=nn.Embedding(163840,7168,padding_idx=163839)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            1145,
+            1147
+          ],
+          "symbol": "KimiK3ForConditionalGeneration.forward",
+          "conclusion": "三个场景的 embedding 查表都在顶层发生（get_input_embeddings()(input_ids)），查表后合并/直传",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "decode 场景 S=1（单 token 查表）"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}",
+      "stage": "语言层 {i}（KimiDecoderLayer：{i}=0 KDA+dense；1-2,4-6,…,91 KDA+MoE；3,7,…,92 MLA+MoE）",
+      "ops_flow": [
+        "input_layernorm",
+        "self_attn(KDA|MLA)",
+        "attn_res混合(权重级)",
+        "post_attention_layernorm",
+        "block_sparse_moe|mlp",
+        "residual_add×2"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            919,
+            971
+          ],
+          "symbol": "KimiDecoderLayer.forward",
+          "conclusion": "普通路径（use_attn_residuals=False 时）",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            973,
+            1046
+          ],
+          "symbol": "KimiDecoderLayer._forward_attn_residual",
+          "conclusion": "use_attn_residuals=True（attn_res_block_size=12）时实际执行路径：入口 _apply_attn_res(self_attention_res_*)（块非空时）→input_layernorm→self_attn→prefix_sum 累加→_apply_attn_res(mlp_res_*)→post_attention_layernorm→FFN→prefix_sum 累加",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            883,
+            900
+          ],
+          "symbol": "KimiDecoderLayer.__init__",
+          "conclusion": "is_kda_layer(i) → KimiDeltaAttention，else KimiMLAAttention；i≥first_k_dense_replace(1) 且 i%1==0 → block_sparse_moe，else mlp",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": "decode（q_len=1 带缓存）：KDA 走 fused_recurrent，MLA 读缓存后注意力；层结构不变",
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.input_layernorm",
+      "stage": "语言层 {i} · 注意力前 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(KimiRMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            901,
+            902
+          ],
+          "symbol": "KimiDecoderLayer.__init__",
+          "conclusion": "input_layernorm=KimiRMSNorm(7168,eps=1e-5)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            226,
+            239
+          ],
+          "symbol": "KimiRMSNorm",
+          "conclusion": "x.float() 算方差后 cast 回输入 dtype",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.post_attention_layernorm",
+      "stage": "语言层 {i} · FFN 前 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(KimiRMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            903,
+            904
+          ],
+          "symbol": "KimiDecoderLayer.__init__",
+          "conclusion": "post_attention_layernorm=KimiRMSNorm(7168,eps=1e-5)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            1035,
+            1035
+          ],
+          "symbol": "KimiDecoderLayer._forward_attn_residual",
+          "conclusion": "注意力残差混合后归一化进 FFN",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn",
+      "stage": "语言层 {i} · 自注意力（{i}∈KDA 层为 KimiDeltaAttention；{i}∈{3,7,…,92} 为 KimiMLAAttention）",
+      "ops_flow": [
+        "KDA: q/k/v_proj→q/k/v_short_conv(k4,silu)→f_a→f_b 核内门控→b_proj(fp32 beta)→chunk_kda|fused_recurrent_kda→g_proj→o_norm→o_proj",
+        "MLA: q_a→q_a_layernorm→q_b→kv_a_with_mqa→kv_a_layernorm→kv_b→rope维拼装(无旋转)→cache_update→FA2等价注意力(v pad 192/切回128)→sigmoid门控→o_proj"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            543,
+            663
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "KDA：q_len==1 且带缓存时 mode='fused_recurrent'（:561），否则 chunk；o 最终 (B,S,7168)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            405,
+            474
+          ],
+          "symbol": "KimiMLAAttention.forward",
+          "conclusion": "MLA：q/kv 低秩分解→cat→cache.update→FA2 dispatch（构造期强制，:1110-1119）→reshape→sigmoid 门→o_proj",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            498,
+            541
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "KDA 子模块：q/k/v_proj 各 Linear(7168,12288)；q/k/v_conv1d=ShortConvolution(12288,k=4,silu)；A_log fp32；f_a(7168→128)/f_b(128→12288)；dt_bias fp32；b_proj(7168→96)；g_proj(7168→12288)；o_norm=FusedRMSNormGated(128)；o_proj(12288→7168)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            364,
+            401
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "MLA 子模块：q_a(7168→1536)/q_a_layernorm/q_b(1536→18432)/kv_a_with_mqa(7168→576)/kv_a_layernorm/kv_b(512→24576)/o_proj(12288→7168)/g_proj(7168→12288)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": "prefill：KDA=chunk_kda（输出 (B,S,96,128)+state (B,96,128,128)）、MLA=FA2 等价注意力；decode（q_len=1 带缓存）：KDA=fused_recurrent_kda、MLA 读 KV 缓存后注意力",
+      "concerns": [
+        "本毛坯 MLA 前向未调用 RoPE（rotary_emb=None，:403；q_rot/k_rot 原样拼接）",
+        "本机无 flash_attn 内核：语言侧注册纯 torch 等价函数接管 ALL_ATTENTION_FUNCTIONS['flash_attention_2']，视觉侧走毛坯自带 eager 回退"
+      ],
+      "status": "llm_only",
+      "open_questions": [
+        "fla 原生 chunk_kda/fused_recurrent_kda 内核不可核对（库未装），数学按毛坯调用契约+KDA 论文语义重建，等价性到对拍数学定义级"
+      ]
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.q_proj",
+      "stage": "语言层 {i}(KDA) · Q 投影",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            498,
+            499
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "q_proj=Linear(7168,12288,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.k_proj",
+      "stage": "语言层 {i}(KDA) · K 投影",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            500,
+            501
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "k_proj=Linear(7168,12288,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.v_proj",
+      "stage": "语言层 {i}(KDA) · V 投影",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            502,
+            502
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "v_proj=Linear(7168,12288,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.q_conv1d",
+      "stage": "语言层 {i}(KDA) · Q 短卷积",
+      "ops_flow": [
+        "short_conv(depthwise_causal_conv1d,k=4)",
+        "silu",
+        "conv_state缓存(B,P,3)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "P"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            504,
+            508
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "q_conv1d=ShortConvolution(12288,kernel_size=4,activation='silu')",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            583,
+            588
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "q,conv_state_q=q_conv1d(x,cache,output_final_state=use_cache,cu_seqlens)；缓存为 kernel-1=3 帧原始输入尾窗 (B,12288,3)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": "prefill 首段 cache=None 全序列；decode 沿 (B,12288,3) 续算",
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.k_conv1d",
+      "stage": "语言层 {i}(KDA) · K 短卷积",
+      "ops_flow": [
+        "short_conv(depthwise_causal_conv1d,k=4)",
+        "silu",
+        "conv_state缓存(B,P,3)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "P"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            509,
+            513
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "k_conv1d=ShortConvolution(12288,4,'silu')",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            589,
+            594
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "k,conv_state_k=k_conv1d(...)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.v_conv1d",
+      "stage": "语言层 {i}(KDA) · V 短卷积",
+      "ops_flow": [
+        "short_conv(depthwise_causal_conv1d,k=4)",
+        "silu",
+        "conv_state缓存(B,P,3)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "P"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            514,
+            518
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "v_conv1d=ShortConvolution(12288,4,'silu')",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            595,
+            600
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "v,conv_state_v=v_conv1d(...)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.f_a_proj",
+      "stage": "语言层 {i}(KDA) · 核内门控降维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            523,
+            523
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "f_a_proj=Linear(7168,128,bias=False)——先降头维再升回的低秩门控",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            601,
+            601
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "g=f_b(f_a(x))，g 进 delta 核做逐通道衰减（use_gate_in_kernel=True）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.f_b_proj",
+      "stage": "语言层 {i}(KDA) · 核内门控升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Dk"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            524,
+            524
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "f_b_proj=Linear(128,12288,bias=False)；主输入 f_a 输出 (B,S,128)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            602,
+            602
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "rearrange '(h d)->h d' 得 (B,S,96,128)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.b_proj",
+      "stage": "语言层 {i}(KDA) · beta 投影",
+      "ops_flow": [
+        "linear",
+        "to_float32"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            529,
+            529
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "b_proj=Linear(7168,96,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            603,
+            603
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "beta=b_proj(x).float()，(B,S,96) fp32 进核（sigmoid 后为 delta 学习率）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.o_norm",
+      "stage": "语言层 {i}(KDA) · 门控 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(fp32内部)",
+        "sigmoid_gate_mul",
+        "cast_back"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Hq",
+          "Dk"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            539,
+            540
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "o_norm=FusedRMSNormGated(128,eps=1e-5,activation='sigmoid')",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            656,
+            656
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "o=o_norm(o,g)——o (B,S,96,128) 乘 sigmoid 门",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": [
+        "fla 原生 FusedRMSNormGated 融合核不可核对，shim 按 rmsnorm(x)·sigmoid(g) 重建（对拍数学定义级）"
+      ]
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.g_proj",
+      "stage": "语言层 {i} · 输出门控投影（KDA 全秩门控 / MLA 输出门控，同形）",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            531,
+            534
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "KDA：use_full_rank_gate=True → g_proj=Linear(7168,96×128=12288,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            398,
+            401
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "MLA：mla_use_output_gate=True → g_proj=Linear(7168,96×128=12288,bias=False)——两族同名同形，共用本节点",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": "KDA：g 输出 (B,S,96,128) 供 o_norm 门控；MLA：g=sigmoid(g_proj(x)) 逐元素乘注意力输出",
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.o_proj",
+      "stage": "语言层 {i} · 注意力输出投影（KDA/MLA 同形）",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "P"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            541,
+            541
+          ],
+          "symbol": "KimiDeltaAttention.__init__",
+          "conclusion": "KDA：o_proj=Linear(12288,7168,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            390,
+            394
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "MLA：o_proj=Linear(96×128=12288,7168,bias=False)——两族同形共用本节点",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            658,
+            659
+          ],
+          "symbol": "KimiDeltaAttention.forward",
+          "conclusion": "KDA 主输入：rearrange 'b t h d -> b t (h d)' 后 (B,S,12288)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            468,
+            473
+          ],
+          "symbol": "KimiMLAAttention.forward",
+          "conclusion": "MLA 主输入：attn_output reshape(B,S,12288)×sigmoid 门后投影",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.q_a_proj",
+      "stage": "语言层 {i}(MLA) · Q 低秩降维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            364,
+            367
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "q_lora_rank=1536 → q_a_proj=Linear(7168,1536,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.q_a_layernorm",
+      "stage": "语言层 {i}(MLA) · Q 中间 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(KimiRMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Qr"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            368,
+            368
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "q_a_layernorm=KimiRMSNorm(1536)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            418,
+            419
+          ],
+          "symbol": "KimiMLAAttention.forward",
+          "conclusion": "q_states=q_b_proj(q_a_layernorm(q_a_proj(x)))",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.q_b_proj",
+      "stage": "语言层 {i}(MLA) · Q 升维到每头",
+      "ops_flow": [
+        "linear",
+        "reshape/view",
+        "transpose(1,2)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Qr"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            369,
+            373
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "q_b_proj=Linear(1536,96×192=18432,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            422,
+            424
+          ],
+          "symbol": "KimiMLAAttention.forward",
+          "conclusion": "view(B,S,96,192)→transpose(B,96,S,192)→split q_pass(128)/q_rot(64)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.kv_a_proj_with_mqa",
+      "stage": "语言层 {i}(MLA) · KV 联合压缩投影",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            378,
+            382
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "kv_a_proj_with_mqa=Linear(7168,512+64=576,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            426,
+            428
+          ],
+          "symbol": "KimiMLAAttention.forward",
+          "conclusion": "compressed_kv (B,S,576)→split k_pass(512)/k_rot(64)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.kv_a_layernorm",
+      "stage": "语言层 {i}(MLA) · KV 压缩态 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(KimiRMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Kv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            383,
+            383
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "kv_a_layernorm=KimiRMSNorm(512)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            430,
+            431
+          ],
+          "symbol": "KimiMLAAttention.forward",
+          "conclusion": "kv_b_proj(kv_a_layernorm(k_pass))",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.self_attn.kv_b_proj",
+      "stage": "语言层 {i}(MLA) · KV 解压投影",
+      "ops_flow": [
+        "linear",
+        "reshape/view",
+        "transpose(1,2)",
+        "split_heads"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Kv"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            384,
+            389
+          ],
+          "symbol": "KimiMLAAttention.__init__",
+          "conclusion": "kv_b_proj=Linear(512,96×(192-64+128)=24576,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            430,
+            433
+          ],
+          "symbol": "KimiMLAAttention.forward",
+          "conclusion": "view(B,S,96,256)→transpose→split k_pass(128)/v(128)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe",
+      "stage": "语言层 {i} · MoE 块（KimiSparseMoeBlock，{i}∈1..92）",
+      "ops_flow": [
+        "gate(路由)",
+        "view(-1,H)",
+        "routed_down",
+        "moe_infer(argsort分派+896专家+situ)",
+        "routed_norm",
+        "routed_up",
+        "view回3D",
+        "+shared_experts"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            815,
+            838
+          ],
+          "symbol": "KimiSparseMoeBlock.forward",
+          "conclusion": "gate→view(-1,7168)→routed_expert_down_proj→moe_infer（eval 断言）→routed_expert_norm→routed_expert_up_proj→view 回→+shared_experts(identity)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            786,
+            813
+          ],
+          "symbol": "KimiSparseMoeBlock.__init__",
+          "conclusion": "experts=896×KimiBlockSparseMLP(3584,3072)；routed_down(7168→3584)/up(3584→7168)/norm=RMSNorm(3584)；shared=KimiMLP(inter=6144)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "训练态未实现（:824-827 raise），全链一律 eval"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.gate",
+      "stage": "语言层 {i} · MoE 路由（KimiMoEGate）",
+      "ops_flow": [
+        "view(-1,H)",
+        "linear(fp32)",
+        "sigmoid",
+        "topk(16,带bias选择)",
+        "gather(无bias加权)",
+        "renormalize",
+        "×scaling"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            703,
+            759
+          ],
+          "symbol": "KimiMoEGate.forward",
+          "conclusion": "logits=F.linear(hidden.float(),weight.float()) (B·S',896) fp32→sigmoid→scores_for_choice=scores+bias→topk16→topk_weight=gather(scores)→renormalize(/sum+1e-20)→×1.0；返回 (topk_idx int64, topk_weight fp32)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            724,
+            746
+          ],
+          "symbol": "KimiMoEGate.forward",
+          "conclusion": "num_expert_group=1 → 分组分支不激活",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "输出为 (idx,weight) 二元组而非单一张量；主输入仍为 hidden (B,S,7168)"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.routed_expert_down_proj",
+      "stage": "语言层 {i} · latent 降维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "T",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            803,
+            806
+          ],
+          "symbol": "KimiSparseMoeBlock.__init__",
+          "conclusion": "routed_expert_down_proj=Linear(7168,3584,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            819,
+            822
+          ],
+          "symbol": "KimiSparseMoeBlock.forward",
+          "conclusion": "view(-1,7168) 后投影——主输入为展平 (B·S',7168)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.routed_expert_norm",
+      "stage": "语言层 {i} · latent RMSNorm",
+      "ops_flow": [
+        "rmsnorm(KimiRMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "T",
+          "El"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            810,
+            813
+          ],
+          "symbol": "KimiSparseMoeBlock.__init__",
+          "conclusion": "latent_moe_use_norm=True → routed_expert_norm=KimiRMSNorm(3584,eps=1e-5)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            829,
+            831
+          ],
+          "symbol": "KimiSparseMoeBlock.forward",
+          "conclusion": "y=routed_expert_norm(y)，y 为 top-k 加权求和后 (B·S',3584)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.routed_expert_up_proj",
+      "stage": "语言层 {i} · latent 升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "T",
+          "El"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            807,
+            809
+          ],
+          "symbol": "KimiSparseMoeBlock.__init__",
+          "conclusion": "routed_expert_up_proj=Linear(3584,7168,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            832,
+            834
+          ],
+          "symbol": "KimiSparseMoeBlock.forward",
+          "conclusion": "y=routed_expert_up_proj(y)→view 回 (B,S',7168)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.shared_experts",
+      "stage": "语言层 {i} · 共享专家（KimiMLP）",
+      "ops_flow": [
+        "gate_proj",
+        "up_proj",
+        "concat",
+        "situ_act",
+        "down_proj",
+        "residual_add"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            797,
+            801
+          ],
+          "symbol": "KimiSparseMoeBlock.__init__",
+          "conclusion": "shared_experts=KimiMLP(intermediate=3072×2=6144)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            836,
+            837
+          ],
+          "symbol": "KimiSparseMoeBlock.forward",
+          "conclusion": "y=y+shared_experts(identity)——主输入 identity (B,S',7168)（view 前）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.shared_experts.gate_proj",
+      "stage": "语言层 {i} · 共享专家 gate 升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            279,
+            280
+          ],
+          "symbol": "KimiMLP.__init__",
+          "conclusion": "gate_proj=Linear(7168,6144,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.shared_experts.up_proj",
+      "stage": "语言层 {i} · 共享专家 up 升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            281,
+            282
+          ],
+          "symbol": "KimiMLP.__init__",
+          "conclusion": "up_proj=Linear(7168,6144,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            295,
+            297
+          ],
+          "symbol": "KimiMLP.forward",
+          "conclusion": "situ 分支 gate_up=cat([gate,up])=(B,S',12288)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.shared_experts.down_proj",
+      "stage": "语言层 {i} · 共享专家降维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Is"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            283,
+            284
+          ],
+          "symbol": "KimiMLP.__init__",
+          "conclusion": "down_proj=Linear(6144,7168,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            297,
+            297
+          ],
+          "symbol": "KimiMLP.forward",
+          "conclusion": "主输入 SituAndMul 输出 (B,S',6144)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.0.mlp",
+      "stage": "语言层 0 · dense FFN（KimiMLP）",
+      "ops_flow": [
+        "gate_proj",
+        "up_proj",
+        "concat",
+        "situ_act",
+        "down_proj"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            893,
+            900
+          ],
+          "symbol": "KimiDecoderLayer.__init__",
+          "conclusion": "layer_idx=0 < first_k_dense_replace=1 → self.mlp=KimiMLP",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            294,
+            301
+          ],
+          "symbol": "KimiMLP.forward",
+          "conclusion": "situ 分支：cat([gate,up])→SituAndMul→down_proj",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.0.mlp.gate_proj",
+      "stage": "语言层 0 · FFN gate 升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            279,
+            280
+          ],
+          "symbol": "KimiMLP.__init__",
+          "conclusion": "gate_proj=Linear(7168,33792,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.0.mlp.up_proj",
+      "stage": "语言层 0 · FFN up 升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            281,
+            282
+          ],
+          "symbol": "KimiMLP.__init__",
+          "conclusion": "up_proj=Linear(7168,33792,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.0.mlp.down_proj",
+      "stage": "语言层 0 · FFN 降维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "I"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            283,
+            284
+          ],
+          "symbol": "KimiMLP.__init__",
+          "conclusion": "down_proj=Linear(33792,7168,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            296,
+            297
+          ],
+          "symbol": "KimiMLP.forward",
+          "conclusion": "主输入 SituAndMul 输出 (B,S',33792)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.norm",
+      "stage": "语言模型 · 末端 RMSNorm",
+      "ops_flow": [
+        "rmsnorm(KimiRMSNorm,fp32内部)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            1100,
+            1101
+          ],
+          "symbol": "KimiLinearModel.__init__",
+          "conclusion": "norm=KimiRMSNorm(7168,eps=1e-5)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            1215,
+            1219
+          ],
+          "symbol": "KimiLinearModel.forward",
+          "conclusion": "output_attn_res 之后 norm(hidden_states)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.lm_head",
+      "stage": "语言模型 · LM 头",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            1247,
+            1248
+          ],
+          "symbol": "KimiLinearForCausalLM.__init__",
+          "conclusion": "lm_head=Linear(7168,163840,bias=False)，不 tied",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            1298,
+            1301
+          ],
+          "symbol": "KimiLinearForCausalLM.forward",
+          "conclusion": "logits=self.lm_head(outputs[0]) (B,S',163840)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.attn_res",
+      "stage": "语言层 {i} · 注意力残差混合机制（权重参与，无独立调用）",
+      "ops_flow": [
+        "concat(block_residual,prefix)",
+        "rms_fp32",
+        "norm.weight×proj.weight打分",
+        "softmax",
+        "matmul",
+        "cast_back",
+        "prefix_sum累加",
+        "块边界concat(%12)"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "H"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Nb": "attn_res 累计块数（跨块动态增长）",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            1075,
+            1088
+          ],
+          "symbol": "_apply_attn_res",
+          "conclusion": "v=cat(block_residual,prefix.unsqueeze(1))=(num_tokens,Nb+1,7168) fp32；score_weight=norm.weight×proj.weight.squeeze(0)（res_proj 模块本体从不被调用，权重直接参与）；scores→softmax→加权求和→cast 回 bf16",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            910,
+            917
+          ],
+          "symbol": "KimiDecoderLayer.__init__",
+          "conclusion": "self_attention_res_norm/mlp_res_norm=KimiRMSNorm(7168)；self_attention_res_proj/mlp_res_proj=Linear(7168,1,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            1103,
+            1108
+          ],
+          "symbol": "KimiLinearModel.__init__",
+          "conclusion": "模型级 output_attn_res_norm/output_attn_res_proj 同构，forward 末端再做一次（:1215-1217, :1226-1233）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "文档节点：res_proj/res_norm 模块本体在前向中从不被调用（仅权重参与），模块树抓图无记录，预期终态 llm_only；机制形状结论由层节点实测旁证"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "lm.cache",
+      "stage": "语言模型 · KimiDynamicCache 状态容器（非 Module）",
+      "ops_flow": [
+        "conv_states[93]",
+        "recurrent_states[93]",
+        "key_cache[93]",
+        "value_cache[93]"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "Hq",
+          "past",
+          "Qd"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "past": "缓存已有 token 数",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            120,
+            223
+          ],
+          "symbol": "KimiDynamicCache",
+          "conclusion": "自定义缓存（非 transformers Cache 子类）：conv_states 每层三元组 (B,12288,3)（KDA :646-649 写入）；recurrent_states 每层 (B,96,128,128)；key_cache 每层 (B,96,S,192)、value_cache (B,96,S,128)（MLA :442-444 update 写入）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "文档节点：非 Module 状态容器，模块树抓图无独立节点，预期终态 llm_only",
+        "decode 场景顶层输入必须 pixel_values=None：合并分支（modeling_kimi_k3.py:1170-1207）会对 past_key_values[0][0] 索引，KimiDynamicCache 非张量元组会崩"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.{j}",
+      "stage": "语言层 {i} · 被分派专家 {j}（KimiBlockSparseMLP，micro 逐专家覆盖）",
+      "ops_flow": [
+        "w1",
+        "w3",
+        "concat",
+        "situ_act",
+        "w2"
+      ],
+      "logical": {
+        "shape": [
+          "Ne",
+          "El"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            242,
+            270
+          ],
+          "symbol": "KimiBlockSparseMLP",
+          "conclusion": "w1/w3=Linear(3584,3072)、w2=Linear(3072,3584)；forward: cat([w1(x),w3(x)])→SituAndMul→w2",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            852,
+            861
+          ],
+          "symbol": "KimiSparseMoeBlock.moe_infer",
+          "conclusion": "按 tokens_per_expert 切片调用被选中专家（:857-858 expert(tokens_for_this_expert)），主输入 (n_e,3584)（n_e 运行时动态）；专家为 block_sparse_moe 的直接数字子模块（ModuleList 容器段不出现在 tree_path）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": "路径模板修正（裁决规程第 2 问）：IR 初稿写作 block_sparse_moe.experts.{e}，实测 tree_path 剥除 ModuleList 容器段为 block_sparse_moe.{j}（如 language_model.model.1.block_sparse_moe.0）；{j} 限定数字段（template_regex \\d+）以避免误配 gate/shared_experts/routed_*。主输入 (Ne,El) 的逐记录实测佐证见子节点 w1（linear in0=(n_e,El)）；{j} 自身 tree_path 上的首记录为模块内部 torch.cat（in0=w1 输出 (n_e,Ei)，与 ops_flow 的 concat 步骤一致）。",
+      "concerns": [
+        "未选中的专家无记录；n_e 依赖路由结果（随机初始化下数值无意义，仅形状有效）"
+      ],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.{j}.w1",
+      "stage": "语言层 {i} · 专家 {j} gate 升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Ne",
+          "El"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            249,
+            249
+          ],
+          "symbol": "KimiBlockSparseMLP.__init__",
+          "conclusion": "w1=Linear(3584,3072,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            262,
+            268
+          ],
+          "symbol": "KimiBlockSparseMLP.forward",
+          "conclusion": "forward: cat([w1(x),w3(x)])→act_fn→w2，w1 为首算子（主输入=模块输入）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.{j}.w2",
+      "stage": "语言层 {i} · 专家 {j} 降维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Ne",
+          "Ei"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            250,
+            250
+          ],
+          "symbol": "KimiBlockSparseMLP.__init__",
+          "conclusion": "w2=Linear(3072,3584,bias=False)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            269,
+            269
+          ],
+          "symbol": "KimiBlockSparseMLP.forward",
+          "conclusion": "主输入 SituAndMul 输出 (n_e,3072)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "language_model.model.{i}.block_sparse_moe.{j}.w3",
+      "stage": "语言层 {i} · 专家 {j} up 升维",
+      "ops_flow": [
+        "linear"
+      ],
+      "logical": {
+        "shape": [
+          "Ne",
+          "El"
+        ],
+        "dim_meaning": {
+          "B": "批量",
+          "S": "合并前文本序列长度（decode 场景=1）",
+          "S2": "图文合并后序列长度（prefill_text 时=S；decode=1）",
+          "T": "展平 token 总数=B·S2",
+          "Lv": "视觉 patch 总数 Σ(t·h·w)",
+          "Cv": "视觉隐藏维=1024",
+          "Hv": "视觉头数=12",
+          "Dv": "视觉头维=1536/12=128",
+          "Nv": "投影器展平 token 总数 Σ(h/2·w/2)",
+          "Nv0": "首图合并块 token 数 h/2·w/2（list 首元素）",
+          "H": "语言隐藏维=7168",
+          "Hq": "语言头数=96",
+          "Dk": "KDA 头维=128",
+          "P": "KDA 投影宽=96×128=12288",
+          "Qr": "q_lora_rank=1536",
+          "Kv": "kv_lora_rank=512",
+          "Qd": "q_head_dim=128+64=192",
+          "Vd": "v_head_dim=128",
+          "Ei": "专家中间维=3072",
+          "El": "latent MoE 隐藏维=3584",
+          "I": "dense 中间维=33792",
+          "Is": "共享专家中间维=3072×2=6144",
+          "Ne": "单专家分派到的 token 数（运行时动态）",
+          "Vv": "词表=163840",
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            251,
+            251
+          ],
+          "symbol": "KimiBlockSparseMLP.__init__",
+          "conclusion": "w3=Linear(3584,3072,bias=False)",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "stage": "语言层 0 · dense FFN SituAndMul 激活",
+      "ops_flow": [
+        "split_getitem",
+        "to_fp32",
+        "tanh",
+        "sigmoid",
+        "mul",
+        "to_bf16"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Ic"
+        ],
+        "dim_meaning": {
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            287,
+            290
+          ],
+          "symbol": "KimiMLP.__init__",
+          "conclusion": "hidden_act=situ → self.act_fn=SituAndMul(beta=4.0, linear_beta=25.0)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            294,
+            297
+          ],
+          "symbol": "KimiMLP.forward",
+          "conclusion": "gate_up=cat([gate_proj(x),up_proj(x)])（2I 宽）→ act_fn(gate_up) → down_proj",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            75,
+            82
+          ],
+          "symbol": "SituAndMul.forward",
+          "conclusion": "SituAndMul.forward：d=x.shape[-1]//2 切片 gate/up（:77-78，内部 .to(float32) 升精度），situ=β·tanh(gate/β)·sigmoid(gate)，linear_beta 时 up=25·tanh(up/25)，返回 situ·up 回 x.dtype",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "内部 fp32 升精度（:77-78），主输入仍为 bf16 cat 输出；输出回投 bf16"
+      ],
+      "status": "llm_only",
+      "open_questions": [],
+      "path": "language_model.model.0.mlp.act_fn"
+    },
+    {
+      "stage": "语言层 {i} · 专家 {j} SituAndMul 激活",
+      "ops_flow": [
+        "split_getitem",
+        "to_fp32",
+        "tanh",
+        "sigmoid",
+        "mul",
+        "to_bf16"
+      ],
+      "logical": {
+        "shape": [
+          "Ne",
+          "Ec"
+        ],
+        "dim_meaning": {
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            255,
+            258
+          ],
+          "symbol": "KimiBlockSparseMLP.__init__",
+          "conclusion": "self.act_fn=SituAndMul(beta=4.0, linear_beta=25.0)（hidden_act=situ）",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            262,
+            268
+          ],
+          "symbol": "KimiBlockSparseMLP.forward",
+          "conclusion": "cat([w1(x),w3(x)])（2Ei 宽）→ self.act_fn(gate_up)（:265）→ w2",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            75,
+            82
+          ],
+          "symbol": "SituAndMul.forward",
+          "conclusion": "SituAndMul.forward：d=x.shape[-1]//2 切片 gate/up（:77-78，内部 .to(float32) 升精度），situ=β·tanh(gate/β)·sigmoid(gate)，linear_beta 时 up=25·tanh(up/25)，返回 situ·up 回 x.dtype",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "Ne 为运行时动态维度（同场景内不同专家实例 n_e 不同）；内部 fp32 升精度"
+      ],
+      "status": "llm_only",
+      "open_questions": [],
+      "path": "language_model.model.{i}.block_sparse_moe.{j}.act_fn"
+    },
+    {
+      "stage": "语言层 {i} · 共享专家 SituAndMul 激活",
+      "ops_flow": [
+        "split_getitem",
+        "to_fp32",
+        "tanh",
+        "sigmoid",
+        "mul",
+        "to_bf16"
+      ],
+      "logical": {
+        "shape": [
+          "B",
+          "S2",
+          "Isc"
+        ],
+        "dim_meaning": {
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            797,
+            801
+          ],
+          "symbol": "KimiSparseMoeBlock.__init__",
+          "conclusion": "shared_experts=KimiMLP(intermediate=2×3072=6144)，其 act_fn=SituAndMul（:287-290）",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            836,
+            837
+          ],
+          "symbol": "KimiSparseMoeBlock.forward",
+          "conclusion": "shared_experts(identity) 走 KimiMLP.forward：cat（2Is 宽）→ act_fn → down_proj",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_linear.py",
+          "lines": [
+            75,
+            82
+          ],
+          "symbol": "SituAndMul.forward",
+          "conclusion": "SituAndMul.forward：d=x.shape[-1]//2 切片 gate/up（:77-78，内部 .to(float32) 升精度），situ=β·tanh(gate/β)·sigmoid(gate)，linear_beta 时 up=25·tanh(up/25)，返回 situ·up 回 x.dtype",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision",
+        "prefill_text",
+        "decode"
+      ],
+      "branch_note": null,
+      "concerns": [
+        "内部 fp32 升精度（:77-78），主输入仍为 bf16 cat 输出"
+      ],
+      "status": "llm_only",
+      "open_questions": [],
+      "path": "language_model.model.{i}.block_sparse_moe.shared_experts.act_fn"
+    },
+    {
+      "stage": "视觉塔 · 编码层 {j} MLP 激活（PytorchGELUTanh）",
+      "ops_flow": [
+        "gelu_tanh"
+      ],
+      "logical": {
+        "shape": [
+          "Lv",
+          4096
+        ],
+        "dim_meaning": {
+          "Qkv": "视觉 qkv packed 维=qkv_hidden_size=Hv·Dv（全量 1536，缩水 128）",
+          "Ic": "dense FFN cat(gate,up) 后维=2×I（全量 67584，缩水 2048）",
+          "Ec": "专家 cat(w1,w3) 后维=2×Ei（全量 6144，缩水 256）",
+          "Isc": "共享专家 cat 后维=2×Is（全量 12288，缩水 512）"
+        },
+        "dtype": "bfloat16",
+        "kind": "source_derived"
+      },
+      "evidence": [
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            449,
+            449
+          ],
+          "symbol": "MLP2.__init__",
+          "conclusion": "self.activation = activation（构造参数传入）",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            455,
+            458
+          ],
+          "symbol": "MLP2.forward",
+          "conclusion": "x=fc0(x) → x=self.activation(x) → fc1：激活作用于 fc0 输出 (L,4096)",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            686,
+            686
+          ],
+          "symbol": "create_vision_tower",
+          "conclusion": "builder 传 PytorchGELUTanh()（gelu tanh 近似）",
+          "kind": "source_derived"
+        },
+        {
+          "file": "modeling_kimi_k3.py",
+          "lines": [
+            37,
+            42
+          ],
+          "symbol": "模块头",
+          "conclusion": "PytorchGELUTanh 导入（transformers 5.17 同名类；:40-41 为旧版回退定义 GELUTanh=F.gelu tanh）",
+          "kind": "source_derived"
+        }
+      ],
+      "scenarios": [
+        "prefill_vision"
+      ],
+      "branch_note": "实测追踪限制（如实声明）：torchvista 对该模块未产生任何 gelu 记录——宏/微全部图中 fc1 主输入以 Constant (72,256) 出现、fc0 出边为空，模块内部算子缺失。独立 TorchDispatchMode 探针证实PytorchGELUTanh 正常 dispatch aten.gelu 且与 F.gelu(approximate='tanh') 全等，判定为抓图工具对该 hub 内核模块的追踪限制，非代码分支缺失；形状结论仅逻辑侧。",
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": [],
+      "path": "vision_tower.encoder.{j}.mlp.activation"
+    }
+  ]
+}

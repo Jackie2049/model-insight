@@ -1,0 +1,97 @@
+{
+  "repository": "https://huggingface.co/moonshotai/Kimi-K3",
+  "revision": "f831ab66814297da540d832a5235f8e904f29d06",
+  "selection": "Python, JSON, Markdown and license; no weight shards or tokenizer binary",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "20c797ce19af0c17de52c6afb144644768a591c521655f5ebf5712c9850f2887",
+      "bytes": 3065,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/LICENSE"
+    },
+    {
+      "path": "README.md",
+      "sha256": "57de265b5842dfa465c6e73b368b0e15a89b8793b5450528dad577da202cc6fe",
+      "bytes": 45261,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/README.md"
+    },
+    {
+      "path": "config.json",
+      "sha256": "9710e121a58d03ac92c8d6da287a19541994319afbbe6d6202af001ffd379213",
+      "bytes": 7006,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/config.json"
+    },
+    {
+      "path": "configuration_kimi_k3.py",
+      "sha256": "735eb9ebe593e17d231e08e1df7f7be9b5ee0e079f511aa201f9572077b416ae",
+      "bytes": 11343,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/configuration_kimi_k3.py"
+    },
+    {
+      "path": "encoding_k3.py",
+      "sha256": "49ff03305fdc4be26867972788d36150b67f8a9e852e62bb7959d87482223676",
+      "bytes": 26304,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/encoding_k3.py"
+    },
+    {
+      "path": "generation_config.json",
+      "sha256": "c6648c25e9705af7fba8847e243840d21b5cc63ddeb6297f750a7ddbb6a02836",
+      "bytes": 53,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/generation_config.json"
+    },
+    {
+      "path": "kimi_k3_processor.py",
+      "sha256": "ec9f7e86d2ab0eee07a8e7e7c037046e77ac3c25a710ad1298ec13be3b585b54",
+      "bytes": 7660,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/kimi_k3_processor.py"
+    },
+    {
+      "path": "kimi_k3_vision_processing.py",
+      "sha256": "d122b30bfd3a51a6f05d4bfcfda1e657827322b1353f7caefeebc2835d7736b5",
+      "bytes": 6686,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/kimi_k3_vision_processing.py"
+    },
+    {
+      "path": "media_utils.py",
+      "sha256": "78403540328f9847d6b7ebc5c44eb2e6a752863de0afb7d0710728bb161dc60d",
+      "bytes": 13844,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/media_utils.py"
+    },
+    {
+      "path": "model.safetensors.index.json",
+      "sha256": "a1c5210650ce71d2d3ae9ec5a101ac4afd3cf4b10091be589853437eb967febd",
+      "bytes": 59764096,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/model.safetensors.index.json"
+    },
+    {
+      "path": "modeling_kimi_k3.py",
+      "sha256": "b9171c96726eda55234c92ac8dfae7e24c512fda68968ae8f2c3782b42665ea2",
+      "bytes": 53444,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/modeling_kimi_k3.py"
+    },
+    {
+      "path": "modeling_kimi_linear.py",
+      "sha256": "9e3564c70ac21854ce5a090cc946c5dc76b70d1050ef50840449181a20fff44a",
+      "bytes": 51506,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/modeling_kimi_linear.py"
+    },
+    {
+      "path": "preprocessor_config.json",
+      "sha256": "4be333605990c53a816e586dee9d5dd545afb7a59947c17f8f7ef26b4782668e",
+      "bytes": 1011,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/preprocessor_config.json"
+    },
+    {
+      "path": "tokenization_kimi.py",
+      "sha256": "f28ea66e2d862a2a5814970b2ce40c2f7d8296ff09aed90a7e7def689b906944",
+      "bytes": 16145,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/tokenization_kimi.py"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "sha256": "5d0803c94db9cd78763499e0956c95fd5a225c14a727e5a6cf5db3f96f010a6e",
+      "bytes": 3478,
+      "url": "https://huggingface.co/moonshotai/Kimi-K3/resolve/f831ab66814297da540d832a5235f8e904f29d06/tokenizer_config.json"
+    }
+  ]
+}

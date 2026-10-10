@@ -1,0 +1,1604 @@
+{
+  "tool": "audit_model.py（S0 静态审计）",
+  "model_dir": "/Volumes/Agent/workspace/projects/model-insight/model-insight-0928/inputs/DeepSeek-V3.2",
+  "env": {
+    "python": "3.13.13",
+    "torch": "2.14.0",
+    "torchvista": "未知"
+  },
+  "files": {
+    "inference/convert.py": "5775942755cd14021af718dc9e1eb3b06387cf87d5a5b9460c8a97cd021008f3",
+    "inference/generate.py": "b4c2fbe02e3594d231003b721b3ff5567ae919467cc2ba6a365a0c267900e2e7",
+    "inference/kernel.py": "92abc46cb6457b8cbe105be66f26f9a119aeb86c872e4521d853d5177d181868",
+    "inference/model.py": "bfe5b89186b579910b6d59fa7e0cf1f7a75ceb4ec5d0f5b54f0ccbe77cdb6a63"
+  },
+  "other_files": [
+    {
+      "file": "DRIVE.md",
+      "size": 798
+    },
+    {
+      "file": "LICENSE",
+      "size": 1084
+    },
+    {
+      "file": "README.md",
+      "size": 7361
+    },
+    {
+      "file": "config.json",
+      "size": 1552
+    },
+    {
+      "file": "generation_config.json",
+      "size": 171
+    },
+    {
+      "file": "inference/README.md",
+      "size": 548
+    },
+    {
+      "file": "inference/config_671B_v3.2.json",
+      "size": 605
+    },
+    {
+      "file": "inference/requirements.txt",
+      "size": 70
+    },
+    {
+      "file": "model.safetensors.index.json",
+      "size": 8938926
+    },
+    {
+      "file": "source.lock.json",
+      "size": 3781
+    }
+  ],
+  "imports": [
+    {
+      "module": "os",
+      "name": "os",
+      "asname": null,
+      "line": 1,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "shutil",
+      "name": "shutil",
+      "asname": null,
+      "line": 2,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "argparse",
+      "name": "ArgumentParser",
+      "asname": null,
+      "line": 3,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "glob",
+      "name": "glob",
+      "asname": null,
+      "line": 4,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "tqdm",
+      "name": "tqdm",
+      "asname": null,
+      "line": 5,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "tqdm",
+      "name": "trange",
+      "asname": null,
+      "line": 5,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "torch",
+      "name": "torch",
+      "asname": null,
+      "line": 7,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "safetensors.torch",
+      "name": "safe_open",
+      "asname": null,
+      "line": 8,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "safetensors.torch",
+      "name": "save_file",
+      "asname": null,
+      "line": 8,
+      "file": "inference/convert.py"
+    },
+    {
+      "module": "os",
+      "name": "os",
+      "asname": null,
+      "line": 1,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "json",
+      "name": "json",
+      "asname": null,
+      "line": 2,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "argparse",
+      "name": "ArgumentParser",
+      "asname": null,
+      "line": 3,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "typing",
+      "name": "List",
+      "asname": null,
+      "line": 4,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "torch",
+      "name": "torch",
+      "asname": null,
+      "line": 6,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "torch.distributed",
+      "name": "torch.distributed",
+      "asname": "dist",
+      "line": 7,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "transformers",
+      "name": "AutoTokenizer",
+      "asname": null,
+      "line": 8,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "safetensors.torch",
+      "name": "load_model",
+      "asname": null,
+      "line": 9,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "model",
+      "name": "Transformer",
+      "asname": null,
+      "line": 11,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "model",
+      "name": "ModelArgs",
+      "asname": null,
+      "line": 11,
+      "file": "inference/generate.py"
+    },
+    {
+      "module": "torch",
+      "name": "torch",
+      "asname": null,
+      "line": 1,
+      "file": "inference/kernel.py"
+    },
+    {
+      "module": "tilelang",
+      "name": "tilelang",
+      "asname": null,
+      "line": 2,
+      "file": "inference/kernel.py"
+    },
+    {
+      "module": "tilelang.language",
+      "name": "tilelang.language",
+      "asname": "T",
+      "line": 3,
+      "file": "inference/kernel.py"
+    },
+    {
+      "module": "typing",
+      "name": "Tuple",
+      "asname": null,
+      "line": 4,
+      "file": "inference/kernel.py"
+    },
+    {
+      "module": "typing",
+      "name": "Optional",
+      "asname": null,
+      "line": 4,
+      "file": "inference/kernel.py"
+    },
+    {
+      "module": "math",
+      "name": "math",
+      "asname": null,
+      "line": 1,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "dataclasses",
+      "name": "dataclass",
+      "asname": null,
+      "line": 2,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "typing",
+      "name": "Tuple",
+      "asname": null,
+      "line": 3,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "typing",
+      "name": "Optional",
+      "asname": null,
+      "line": 3,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "typing",
+      "name": "Literal",
+      "asname": null,
+      "line": 3,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "torch",
+      "name": "torch",
+      "asname": null,
+      "line": 5,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "torch",
+      "name": "nn",
+      "asname": null,
+      "line": 6,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "torch.nn.functional",
+      "name": "torch.nn.functional",
+      "asname": "F",
+      "line": 7,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "torch.distributed",
+      "name": "torch.distributed",
+      "asname": "dist",
+      "line": 8,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "kernel",
+      "name": "act_quant",
+      "asname": null,
+      "line": 10,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "kernel",
+      "name": "fp8_gemm",
+      "asname": null,
+      "line": 10,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "kernel",
+      "name": "fp8_index",
+      "asname": null,
+      "line": 10,
+      "file": "inference/model.py"
+    },
+    {
+      "module": "fast_hadamard_transform",
+      "name": "hadamard_transform",
+      "asname": null,
+      "line": 430,
+      "file": "inference/model.py"
+    }
+  ],
+  "missing_deps": [
+    {
+      "module": "fast_hadamard_transform",
+      "used_in": [
+        "inference/model.py"
+      ],
+      "import_sites": [
+        "inference/model.py:430"
+      ]
+    },
+    {
+      "module": "tilelang",
+      "used_in": [
+        "inference/kernel.py"
+      ],
+      "import_sites": [
+        "inference/kernel.py:2",
+        "inference/kernel.py:3"
+      ]
+    }
+  ],
+  "fallbacks": [],
+  "external_calls": [
+    {
+      "line": 7,
+      "func": "tilelang.set_log_level",
+      "from": "tilelang",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 21,
+      "func": "T.reinterpret",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 24,
+      "func": "T.Cast",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 24,
+      "func": "T.if_then_else",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 29,
+      "func": "T.reinterpret",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 40,
+      "func": "T.symbolic",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 52,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 54,
+      "func": "T.Kernel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 54,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 54,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 58,
+      "func": "T.alloc_shared",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 59,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 60,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 61,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 62,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 63,
+      "func": "T.alloc_shared",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 65,
+      "func": "T.Pipelined",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 66,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 67,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 68,
+      "func": "T.reduce_absmax",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 69,
+      "func": "T.Parallel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 70,
+      "func": "T.max",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 75,
+      "func": "T.Parallel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 76,
+      "func": "T.clamp",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 79,
+      "func": "T.Parallel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 81,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 82,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 36,
+      "func": "tilelang.jit",
+      "from": "tilelang",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 118,
+      "func": "T.symbolic",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 129,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 130,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 130,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 132,
+      "func": "T.Kernel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 132,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 132,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 136,
+      "func": "T.alloc_shared",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 137,
+      "func": "T.alloc_shared",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 138,
+      "func": "T.alloc_shared",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 139,
+      "func": "T.alloc_shared",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 140,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 141,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 144,
+      "func": "T.use_swizzle",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 146,
+      "func": "T.clear",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 147,
+      "func": "T.clear",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 148,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 149,
+      "func": "T.Pipelined",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 151,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 153,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 156,
+      "func": "T.Parallel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 159,
+      "func": "T.gemm",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 161,
+      "func": "T.Parallel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 163,
+      "func": "T.clear",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 165,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 166,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 114,
+      "func": "tilelang.jit",
+      "from": "tilelang",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 201,
+      "func": "T.symbolic",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 202,
+      "func": "T.symbolic",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 203,
+      "func": "T.symbolic",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 216,
+      "func": "T.Kernel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 216,
+      "func": "T.ceildiv",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 217,
+      "func": "T.alloc_shared",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 218,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 220,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 221,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 223,
+      "func": "T.Pipelined",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 224,
+      "func": "T.alloc_shared",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 225,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 227,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 228,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 230,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 231,
+      "func": "T.gemm",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 240,
+      "func": "T.Parallel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 241,
+      "func": "T.max",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 243,
+      "func": "T.alloc_fragment",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 244,
+      "func": "T.reduce_sum",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 246,
+      "func": "T.Parallel",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 249,
+      "func": "T.copy",
+      "from": "tilelang.language",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 199,
+      "func": "tilelang.jit",
+      "from": "tilelang",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 432,
+      "func": "hadamard_transform",
+      "from": "fast_hadamard_transform.hadamard_transform",
+      "file": "inference/model.py"
+    }
+  ],
+  "classes": [
+    {
+      "name": "ModelArgs",
+      "line": 18,
+      "bases": [],
+      "nn_module_like": false,
+      "has_forward": false,
+      "methods": [],
+      "class_attrs": {},
+      "init_outline": [],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "ParallelEmbedding",
+      "line": 92,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "vocab_size",
+          "line": 102,
+          "rhs": "self.vocab_size = vocab_size"
+        },
+        {
+          "attr": "dim",
+          "line": 103,
+          "rhs": "self.dim = dim"
+        },
+        {
+          "attr": "part_vocab_size",
+          "line": 105,
+          "rhs": "self.part_vocab_size = (vocab_size // world_size)"
+        },
+        {
+          "attr": "vocab_start_idx",
+          "line": 106,
+          "rhs": "self.vocab_start_idx = rank * self.part_vocab_size"
+        },
+        {
+          "attr": "vocab_end_idx",
+          "line": 107,
+          "rhs": "self.vocab_end_idx = self.vocab_start_idx + self.part_vocab_size"
+        },
+        {
+          "attr": "weight",
+          "line": 108,
+          "rhs": "self.weight = nn.Parameter(torch.empty(self.part_vocab_size, self.dim))"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "Linear",
+      "line": 166,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {
+        "dtype": "dtype = torch.bfloat16"
+      },
+      "init_outline": [
+        {
+          "attr": "in_features",
+          "line": 181,
+          "rhs": "self.in_features = in_features"
+        },
+        {
+          "attr": "out_features",
+          "line": 182,
+          "rhs": "self.out_features = out_features"
+        },
+        {
+          "attr": "weight",
+          "line": 183,
+          "rhs": "self.weight = nn.Parameter(torch.empty(out_features, in_features, dtype=dtype or Linear.dtype))"
+        },
+        {
+          "attr": "scale",
+          "line": 187,
+          "rhs": "self.weight.scale = self.scale = nn.Parameter(torch.empty(scale_out_features, scale_in_features, dtype=torch.float32))"
+        },
+        {
+          "attr": "bias",
+          "line": 191,
+          "rhs": "self.bias = nn.Parameter(torch.empty(out_features))"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "ColumnParallelLinear",
+      "line": 208,
+      "bases": [
+        "Linear"
+      ],
+      "nn_module_like": false,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "part_out_features",
+          "line": 220,
+          "rhs": "self.part_out_features = out_features // world_size"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "RowParallelLinear",
+      "line": 237,
+      "bases": [
+        "Linear"
+      ],
+      "nn_module_like": false,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "part_in_features",
+          "line": 249,
+          "rhs": "self.part_in_features = in_features // world_size"
+        },
+        {
+          "attr": "reduce_output",
+          "line": 250,
+          "rhs": "self.reduce_output = reduce_output"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "RMSNorm",
+      "line": 272,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "dim",
+          "line": 282,
+          "rhs": "self.dim = dim"
+        },
+        {
+          "attr": "eps",
+          "line": 283,
+          "rhs": "self.eps = eps"
+        },
+        {
+          "attr": "weight",
+          "line": 284,
+          "rhs": "self.weight = nn.Parameter(torch.ones(dim, dtype=torch.float32))"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "LayerNorm",
+      "line": 309,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "dim",
+          "line": 315,
+          "rhs": "self.dim = dim"
+        },
+        {
+          "attr": "eps",
+          "line": 316,
+          "rhs": "self.eps = eps"
+        },
+        {
+          "attr": "weight",
+          "line": 317,
+          "rhs": "self.weight = nn.Parameter(torch.ones(dim, dtype=torch.float32))"
+        },
+        {
+          "attr": "bias",
+          "line": 318,
+          "rhs": "self.bias = nn.Parameter(torch.zeros(dim, dtype=torch.float32))"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "Indexer",
+      "line": 435,
+      "bases": [
+        "torch.nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "n_local_heads",
+          "line": 440,
+          "rhs": "self.n_local_heads = args.index_n_heads // world_size"
+        },
+        {
+          "attr": "wq_b",
+          "line": 445,
+          "rhs": "self.wq_b = Linear(self.q_lora_rank, self.n_heads * self.head_dim)"
+        },
+        {
+          "attr": "wk",
+          "line": 446,
+          "rhs": "self.wk = Linear(self.dim, self.head_dim)"
+        },
+        {
+          "attr": "k_norm",
+          "line": 447,
+          "rhs": "self.k_norm = LayerNorm(self.head_dim)"
+        },
+        {
+          "attr": "weights_proj",
+          "line": 449,
+          "rhs": "self.weights_proj = Linear(self.dim, self.n_heads, dtype=torch.float32)"
+        },
+        {
+          "attr": "softmax_scale",
+          "line": 450,
+          "rhs": "self.softmax_scale = self.head_dim ** -0.5"
+        },
+        {
+          "attr": "scale_fmt",
+          "line": 451,
+          "rhs": "self.scale_fmt = args.scale_fmt"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "MLA",
+      "line": 498,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "dim",
+          "line": 516,
+          "rhs": "self.dim = args.dim"
+        },
+        {
+          "attr": "n_heads",
+          "line": 517,
+          "rhs": "self.n_heads = args.n_heads"
+        },
+        {
+          "attr": "n_local_heads",
+          "line": 518,
+          "rhs": "self.n_local_heads = args.n_heads // world_size"
+        },
+        {
+          "attr": "q_lora_rank",
+          "line": 519,
+          "rhs": "self.q_lora_rank = args.q_lora_rank"
+        },
+        {
+          "attr": "kv_lora_rank",
+          "line": 520,
+          "rhs": "self.kv_lora_rank = args.kv_lora_rank"
+        },
+        {
+          "attr": "qk_nope_head_dim",
+          "line": 521,
+          "rhs": "self.qk_nope_head_dim = args.qk_nope_head_dim"
+        },
+        {
+          "attr": "qk_rope_head_dim",
+          "line": 522,
+          "rhs": "self.qk_rope_head_dim = args.qk_rope_head_dim"
+        },
+        {
+          "attr": "qk_head_dim",
+          "line": 523,
+          "rhs": "self.qk_head_dim = args.qk_nope_head_dim + args.qk_rope_head_dim"
+        },
+        {
+          "attr": "v_head_dim",
+          "line": 524,
+          "rhs": "self.v_head_dim = args.v_head_dim"
+        },
+        {
+          "attr": "wq_a",
+          "line": 526,
+          "rhs": "self.wq_a = Linear(self.dim, self.q_lora_rank)"
+        },
+        {
+          "attr": "q_norm",
+          "line": 527,
+          "rhs": "self.q_norm = RMSNorm(self.q_lora_rank)"
+        },
+        {
+          "attr": "wq_b",
+          "line": 528,
+          "rhs": "self.wq_b = ColumnParallelLinear(self.q_lora_rank, self.n_heads * self.qk_head_dim)"
+        },
+        {
+          "attr": "wkv_a",
+          "line": 529,
+          "rhs": "self.wkv_a = Linear(self.dim, self.kv_lora_rank + self.qk_rope_head_dim)"
+        },
+        {
+          "attr": "kv_norm",
+          "line": 530,
+          "rhs": "self.kv_norm = RMSNorm(self.kv_lora_rank)"
+        },
+        {
+          "attr": "wkv_b",
+          "line": 531,
+          "rhs": "self.wkv_b = ColumnParallelLinear(self.kv_lora_rank, self.n_heads * (self.qk_nope_head_dim + self.v_head_dim))"
+        },
+        {
+          "attr": "wo",
+          "line": 532,
+          "rhs": "self.wo = RowParallelLinear(self.n_heads * self.v_head_dim, self.dim)"
+        },
+        {
+          "attr": "softmax_scale",
+          "line": 533,
+          "rhs": "self.softmax_scale = self.qk_head_dim ** -0.5"
+        },
+        {
+          "attr": "scale_fmt",
+          "line": 534,
+          "rhs": "self.scale_fmt = args.scale_fmt"
+        },
+        {
+          "attr": "indexer",
+          "line": 539,
+          "rhs": "self.indexer = Indexer(args)"
+        },
+        {
+          "attr": "dequant_wkv_b",
+          "line": 543,
+          "rhs": "self.dequant_wkv_b = None"
+        },
+        {
+          "attr": "softmax_scale",
+          "line": 537,
+          "rhs": "self.softmax_scale = self.softmax_scale * mscale * mscale"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "MLP",
+      "line": 611,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "w1",
+          "line": 629,
+          "rhs": "self.w1 = ColumnParallelLinear(dim, inter_dim)"
+        },
+        {
+          "attr": "w2",
+          "line": 630,
+          "rhs": "self.w2 = RowParallelLinear(inter_dim, dim, reduce_output=reduce_output)"
+        },
+        {
+          "attr": "w3",
+          "line": 631,
+          "rhs": "self.w3 = ColumnParallelLinear(dim, inter_dim)"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "Gate",
+      "line": 646,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "dim",
+          "line": 668,
+          "rhs": "self.dim = args.dim"
+        },
+        {
+          "attr": "topk",
+          "line": 669,
+          "rhs": "self.topk = args.n_activated_experts"
+        },
+        {
+          "attr": "n_groups",
+          "line": 670,
+          "rhs": "self.n_groups = args.n_expert_groups"
+        },
+        {
+          "attr": "topk_groups",
+          "line": 671,
+          "rhs": "self.topk_groups = args.n_limited_groups"
+        },
+        {
+          "attr": "score_func",
+          "line": 672,
+          "rhs": "self.score_func = args.score_func"
+        },
+        {
+          "attr": "route_scale",
+          "line": 673,
+          "rhs": "self.route_scale = args.route_scale"
+        },
+        {
+          "attr": "weight",
+          "line": 674,
+          "rhs": "self.weight = nn.Parameter(torch.empty(args.n_routed_experts, args.dim))"
+        },
+        {
+          "attr": "bias",
+          "line": 675,
+          "rhs": "self.bias = nn.Parameter(torch.empty(args.n_routed_experts, dtype=torch.float32)) if self.dim == 7168 else None"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "Expert",
+      "line": 712,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "w1",
+          "line": 730,
+          "rhs": "self.w1 = Linear(dim, inter_dim)"
+        },
+        {
+          "attr": "w2",
+          "line": 731,
+          "rhs": "self.w2 = Linear(inter_dim, dim)"
+        },
+        {
+          "attr": "w3",
+          "line": 732,
+          "rhs": "self.w3 = Linear(dim, inter_dim)"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "MoE",
+      "line": 747,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "dim",
+          "line": 768,
+          "rhs": "self.dim = args.dim"
+        },
+        {
+          "attr": "n_routed_experts",
+          "line": 770,
+          "rhs": "self.n_routed_experts = args.n_routed_experts"
+        },
+        {
+          "attr": "n_local_experts",
+          "line": 771,
+          "rhs": "self.n_local_experts = args.n_routed_experts // world_size"
+        },
+        {
+          "attr": "n_activated_experts",
+          "line": 772,
+          "rhs": "self.n_activated_experts = args.n_activated_experts"
+        },
+        {
+          "attr": "experts_start_idx",
+          "line": 773,
+          "rhs": "self.experts_start_idx = rank * self.n_local_experts"
+        },
+        {
+          "attr": "experts_end_idx",
+          "line": 774,
+          "rhs": "self.experts_end_idx = self.experts_start_idx + self.n_local_experts"
+        },
+        {
+          "attr": "gate",
+          "line": 775,
+          "rhs": "self.gate = Gate(args)"
+        },
+        {
+          "attr": "experts",
+          "line": 776,
+          "rhs": "self.experts = nn.ModuleList([Expert(args.dim, args.moe_inter_dim) if self.experts_start_idx <= i < self.experts_end_idx"
+        },
+        {
+          "attr": "shared_experts",
+          "line": 778,
+          "rhs": "self.shared_experts = MLP(args.dim, args.n_shared_experts * args.moe_inter_dim, reduce_output=False)"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "Block",
+      "line": 807,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "attn",
+          "line": 826,
+          "rhs": "self.attn = MLA(args)"
+        },
+        {
+          "attr": "ffn",
+          "line": 827,
+          "rhs": "self.ffn = MLP(args.dim, args.inter_dim) if layer_id < args.n_dense_layers else MoE(args)"
+        },
+        {
+          "attr": "attn_norm",
+          "line": 828,
+          "rhs": "self.attn_norm = RMSNorm(args.dim)"
+        },
+        {
+          "attr": "ffn_norm",
+          "line": 829,
+          "rhs": "self.ffn_norm = RMSNorm(args.dim)"
+        }
+      ],
+      "file": "inference/model.py"
+    },
+    {
+      "name": "Transformer",
+      "line": 854,
+      "bases": [
+        "nn.Module"
+      ],
+      "nn_module_like": true,
+      "has_forward": true,
+      "methods": [
+        "__init__",
+        "forward"
+      ],
+      "class_attrs": {},
+      "init_outline": [
+        {
+          "attr": "max_seq_len",
+          "line": 879,
+          "rhs": "self.max_seq_len = args.max_seq_len"
+        },
+        {
+          "attr": "embed",
+          "line": 880,
+          "rhs": "self.embed = ParallelEmbedding(args.vocab_size, args.dim)"
+        },
+        {
+          "attr": "layers",
+          "line": 881,
+          "rhs": "self.layers = torch.nn.ModuleList()"
+        },
+        {
+          "attr": "norm",
+          "line": 884,
+          "rhs": "self.norm = RMSNorm(args.dim)"
+        },
+        {
+          "attr": "head",
+          "line": 886,
+          "rhs": "self.head = ColumnParallelLinear(args.dim, args.vocab_size, dtype=torch.float32)"
+        }
+      ],
+      "file": "inference/model.py"
+    }
+  ],
+  "config_like": [],
+  "dist_refs": [
+    {
+      "line": 104,
+      "what": "dist.init_process_group",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 130,
+      "what": "dist.broadcast_object_list",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 133,
+      "what": "dist.broadcast_object_list",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 159,
+      "what": "dist.destroy_process_group",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 130,
+      "what": "dist.all_reduce",
+      "file": "inference/model.py"
+    },
+    {
+      "line": 266,
+      "what": "dist.all_reduce",
+      "file": "inference/model.py"
+    },
+    {
+      "line": 485,
+      "what": "dist.broadcast",
+      "file": "inference/model.py"
+    },
+    {
+      "line": 803,
+      "what": "dist.all_reduce",
+      "file": "inference/model.py"
+    },
+    {
+      "line": 874,
+      "what": "dist.is_initialized",
+      "file": "inference/model.py"
+    },
+    {
+      "line": 874,
+      "what": "dist.get_world_size",
+      "file": "inference/model.py"
+    },
+    {
+      "line": 875,
+      "what": "dist.is_initialized",
+      "file": "inference/model.py"
+    },
+    {
+      "line": 875,
+      "what": "dist.get_rank",
+      "file": "inference/model.py"
+    },
+    {
+      "line": 911,
+      "what": "dist.all_gather",
+      "file": "inference/model.py"
+    }
+  ],
+  "device_refs": [
+    {
+      "line": 55,
+      "code": "设备字符串 'cpu'",
+      "file": "inference/convert.py"
+    },
+    {
+      "line": 54,
+      "code": "设备字符串 'cuda'",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 56,
+      "code": "设备字符串 'cuda'",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 58,
+      "code": "设备字符串 'cuda'",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 115,
+      "code": "设备字符串 'cuda'",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 918,
+      "code": "设备字符串 'cuda'",
+      "file": "inference/model.py"
+    }
+  ],
+  "weight_refs": [
+    {
+      "line": 117,
+      "what": "AutoTokenizer.from_pretrained",
+      "file": "inference/generate.py"
+    }
+  ],
+  "toplevel_calls": [
+    {
+      "line": 93,
+      "code": "parser = ArgumentParser()；    parser.add_argument(\"--hf-ckpt-path\", type=str, required=True)；    parser.add_argument(\"--",
+      "file": "inference/convert.py"
+    },
+    {
+      "line": 177,
+      "code": "parser = ArgumentParser()；    parser.add_argument(\"--ckpt-path\", type=str, required=True)；    parser.add_argument(\"--con",
+      "file": "inference/generate.py"
+    },
+    {
+      "line": 7,
+      "code": "tilelang.set_log_level(\"WARNING\")；；pass_configs = {",
+      "file": "inference/kernel.py"
+    },
+    {
+      "line": 917,
+      "code": "torch.set_default_dtype(torch.bfloat16)；    torch.set_default_device(\"cuda\")；    torch.manual_seed(0)",
+      "file": "inference/model.py"
+    }
+  ],
+  "syntax_errors": []
+}

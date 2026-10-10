@@ -1,0 +1,79 @@
+{
+  "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2",
+  "revision": "a7e62ac04ecb2c0a54d736dc46601c5606cf10a6",
+  "selection": "inference/ 推理毛坯（Python + 671B config + requirements）及根目录 config/index/LICENSE/README；不含 safetensors 分片与 tokenizer 二进制",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "f2c6c602815669d292889e5be8c802f2ed950653b77999b1584e8e6aed25d040",
+      "bytes": 1084,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/LICENSE"
+    },
+    {
+      "path": "README.md",
+      "sha256": "22b9f57e1ece2df27f9de0e71377e19481f7a6892eca8bc23e73fcdffe1d845c",
+      "bytes": 7361,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/README.md"
+    },
+    {
+      "path": "config.json",
+      "sha256": "c7fa8b191e9936d8e6a57d864baab82b792fae16a116416cdd3a75ba76bc5af1",
+      "bytes": 1552,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/config.json"
+    },
+    {
+      "path": "generation_config.json",
+      "sha256": "c9ce7f8d4a66c6cedd053650db3596328f241f00a7e49e67b89e5c9e336e7205",
+      "bytes": 171,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/generation_config.json"
+    },
+    {
+      "path": "model.safetensors.index.json",
+      "sha256": "2a150b2af4aba7b037edc9fdba70f3b41abf758ee926279e7701d954298f9884",
+      "bytes": 8938926,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/model.safetensors.index.json"
+    },
+    {
+      "path": "inference/README.md",
+      "sha256": "49b9d8e6d12a1d3848a9b1cb05e1b05416eb30718fcc847b12a0bdd59cd2fe08",
+      "bytes": 548,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/inference/README.md"
+    },
+    {
+      "path": "inference/config_671B_v3.2.json",
+      "sha256": "f9fe074cdef8fdcc0feabbe635ff7c072a65d273a42a6bc207fe425439dff835",
+      "bytes": 605,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/inference/config_671B_v3.2.json"
+    },
+    {
+      "path": "inference/convert.py",
+      "sha256": "5775942755cd14021af718dc9e1eb3b06387cf87d5a5b9460c8a97cd021008f3",
+      "bytes": 3947,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/inference/convert.py"
+    },
+    {
+      "path": "inference/generate.py",
+      "sha256": "b4c2fbe02e3594d231003b721b3ff5567ae919467cc2ba6a365a0c267900e2e7",
+      "bytes": 7792,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/inference/generate.py"
+    },
+    {
+      "path": "inference/kernel.py",
+      "sha256": "92abc46cb6457b8cbe105be66f26f9a119aeb86c872e4521d853d5177d181868",
+      "bytes": 9957,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/inference/kernel.py"
+    },
+    {
+      "path": "inference/model.py",
+      "sha256": "bfe5b89186b579910b6d59fa7e0cf1f7a75ceb4ec5d0f5b54f0ccbe77cdb6a63",
+      "bytes": 38639,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/inference/model.py"
+    },
+    {
+      "path": "inference/requirements.txt",
+      "sha256": "06dfb5d41de9fdcfa5f723203fe84eacb93bda1792eb5d1d1a063e25b96aa6ad",
+      "bytes": 70,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/a7e62ac04ecb2c0a54d736dc46601c5606cf10a6/inference/requirements.txt"
+    }
+  ]
+}

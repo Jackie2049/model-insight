@@ -1,0 +1,92 @@
+{
+  "ir_version": "1.0",
+  "model": {
+    "name": "TinyModel（测试夹具）",
+    "source_files_hash": {"model.py": "RUNTIME_FILLED_BY_TESTS"},
+    "config_snapshot": {"dim": 32, "n_layers": 3, "vocab": 128},
+    "scale_note": "逻辑侧按源码默认全量配置推导（dim=32/vocab=128）；实际实例化的缩水参数由 capture 侧声明、融合阶段合并"
+  },
+  "contract": {
+    "scenarios": [{"id": "prefill"}, {"id": "decode"}],
+    "replacements": [],
+    "coverage": {
+      "layer_types": {"TinyBlock": "layers.0-2（全部同构）"},
+      "captured": [],
+      "folded": "2a 阶段留空；融合阶段由实测作业回填代表层清单"
+    }
+  },
+  "nodes": [
+    {
+      "path": "embed",
+      "stage": "入口 → 词嵌入",
+      "ops_flow": ["embedding"],
+      "logical": {"shape": ["B", "S"], "dim_meaning": {"B": "批量", "S": "序列长度"}, "dtype": "int64", "kind": "source_derived"},
+      "evidence": [{"file": "model.py", "lines": [38, 39], "symbol": "TinyModel.forward", "conclusion": "forward 唯一输入是 token 序列，Embedding 查表主输入形状为 (B, S)、dtype int64", "kind": "source_derived"}],
+      "scenarios": ["prefill", "decode"],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "{i}.norm",
+      "stage": "第 {i} 层 → 归一化",
+      "ops_flow": ["layer_norm"],
+      "logical": {"shape": ["B", "S", "dim"], "dim_meaning": {"B": "批量", "S": "序列长度", "dim": "模型宽度"}, "dtype": "bfloat16", "kind": "source_derived"},
+      "evidence": [{"file": "model.py", "lines": [22, 23], "symbol": "TinyBlock.forward", "conclusion": "norm 为 LayerNorm(dim)，输入即块主输入 (B, S, dim)", "kind": "source_derived"}],
+      "scenarios": ["prefill", "decode"],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "{i}.fc1",
+      "stage": "第 {i} 层 → 升维投影",
+      "ops_flow": ["linear"],
+      "logical": {"shape": ["B", "S", "dim", "EXTRA"], "dim_meaning": {"B": "批量", "S": "序列长度", "dim": "模型宽度", "EXTRA": "（故意写错的维度：测 mismatch 通道）"}, "dtype": "bfloat16", "kind": "source_derived"},
+      "evidence": [{"file": "model.py", "lines": [23, 24], "symbol": "TinyBlock.forward", "conclusion": "fc1 主输入为 norm 输出（此条 evidence 本身支持 (B,S,dim)，节点逻辑形状故意写错以驱动 mismatch）", "kind": "source_derived"}],
+      "scenarios": ["prefill", "decode"],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "{i}.fc2",
+      "stage": "第 {i} 层 → 降维投影",
+      "ops_flow": ["linear"],
+      "logical": {"shape": ["B", "S", "dim2"], "dim_meaning": {"B": "批量", "S": "序列长度", "dim2": "中间维（=2×dim）"}, "dtype": "bfloat16", "kind": "source_derived"},
+      "evidence": [{"file": "model.py", "lines": [25, 26], "symbol": "TinyBlock.forward", "conclusion": "fc2 主输入为激活输出 (B, S, 2*dim)", "kind": "source_derived"}],
+      "scenarios": ["prefill", "decode"],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "head",
+      "stage": "出口 → 输出头",
+      "ops_flow": ["linear"],
+      "logical": {"shape": ["B", "S", "dim"], "dim_meaning": {"B": "批量", "S": "序列长度", "dim": "模型宽度"}, "dtype": "bfloat16", "kind": "source_derived"},
+      "evidence": [{"file": "model.py", "lines": [42, 42], "symbol": "TinyModel.forward", "conclusion": "head 主输入为末层块输出 (B, S, dim)", "kind": "source_derived"}],
+      "scenarios": ["prefill", "decode"],
+      "branch_note": null,
+      "concerns": [],
+      "status": "llm_only",
+      "open_questions": []
+    },
+    {
+      "path": "{i}.ghost",
+      "stage": "第 {i} 层 → 幽灵模块（故意不存在：测 llm_only 通道）",
+      "ops_flow": ["unknown"],
+      "logical": {"shape": ["B", "S"], "dim_meaning": {"B": "批量", "S": "序列长度"}, "dtype": "bfloat16", "kind": "source_derived"},
+      "evidence": [{"file": "model.py", "lines": [40, 41], "symbol": "TinyModel.forward", "conclusion": "循环体中推测可能存在未识别模块（实际不存在——保留用于验证 llm_only 通道）", "kind": "source_derived"}],
+      "scenarios": ["prefill", "decode"],
+      "branch_note": null,
+      "concerns": ["夹具故意节点"],
+      "status": "llm_only",
+      "open_questions": []
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+[transformers] The `check_model_inputs` decorator is deprecated in favor of `merge_with_config_defaults`.
+[PASS] R1 拆分 (b t (h d))  
+[PASS] R1 合并 (b (h d))  
+[PASS] R1 省略号 (... (h d))  
+[PASS] R1 置换  
+[PASS] R1 毛坯模式1 (b t (h d) -> b h t d)  
+[PASS] R1 毛坯模式2 (b t h d -> b t (h d))  
+[PASS] R2a ShortConv 无缓存 fp32  y_maxdiff=1.19e-07 final_maxdiff=0.00e+00
+[PASS] R2a ShortConv 带 cache fp32  y_maxdiff=2.38e-07 final_maxdiff=0.00e+00
+[PASS] R2a ShortConv 无缓存 bf16  y_maxdiff=0.00e+00 final_maxdiff=0.00e+00
+[PASS] R2a ShortConv 带 cache bf16  y_maxdiff=0.00e+00 final_maxdiff=0.00e+00
+[PASS] R2b FusedRMSNormGated fp32  maxdiff=0.00e+00
+[PASS] R2b FusedRMSNormGated bf16  maxdiff=0.00e+00
+[PASS] R2c chunk_kda 模型旗标 fp32-vs-fp64锚  o_maxdiff=1.19e-07 (|o|max=1.48) state_maxdiff=1.19e-07
+[PASS] R2c chunk_kda 模型旗标 bf16-vs-fp64锚  o_maxdiff=7.55e-03 state_maxdiff=3.15e-03（bf16 舍入量级）
+[PASS] R2c fused_recurrent decode形态(safe_gate缺省) fp32-vs-fp64锚  o_maxdiff=1.19e-07（确认 decode 路径无 clamp 与旗标一致）
+[PASS] R2c chunk_kda 带初态 fp32-vs-fp64锚  o_maxdiff=2.38e-07
+[PASS] R3 GQA prefill 因果 fp32  maxdiff=0.00e+00
+[PASS] R3 GQA prefill 因果 bf16  maxdiff=3.91e-03
+[PASS] R3 无掩码（mask=None）fp32  maxdiff=0.00e+00
+[PASS] R3 decode Sq=1 全可见 fp32  maxdiff=0.00e+00
+[PASS] R3 n_rep=1 prefill 因果 fp32  maxdiff=0.00e+00
+
+=== 对拍汇总：21/21 通过 ===

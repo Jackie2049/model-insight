@@ -1,0 +1,204 @@
+@startuml
+title model-insight-0928：毛坯源码如何经双引擎变成可核对的算子 IR 与可视化
+
+top to bottom direction
+skinparam nodesep 40
+skinparam ranksep 50
+skinparam wrapWidth 280
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam rectangle {
+  BorderColor #888888
+  BackgroundColor transparent
+}
+skinparam class {
+  BorderColor #666666
+  BackgroundColor #FFFFFF
+}
+
+' 读图从 L1 进入：代理只拿到驱动语，操作知识全在 SKILL
+
+rectangle "L1 入口与任务契约" as L1 #E7F1FA {
+  class DRIVE {
+    inputs/<模型>/DRIVE.md
+    只指定毛坯与输出目录
+    禁止读其他模型与 monitor
+  }
+  class SKILL {
+    六阶段操作总纲
+    只读 inputs，只写 outputs
+    先逻辑分析，后抓图
+  }
+  class SPEC {
+    交付九条与诚实红线
+    阶段六对照写 SELF-CHECK
+  }
+}
+
+rectangle "L2 编排规程（代理判断，脚本不执行）" as L2 #FFF4E0 {
+  class logical_analysis {
+    层模板枚举
+    推 shape / dtype
+    写 analysis_ir + notes
+  }
+  class shim_development {
+    缺依赖 kernel 的等价替换
+    挂树 + 重绑
+    等价验证留痕
+  }
+  class capture_planning {
+    编写 spec.json
+    macro 场景 + micro 代表层
+    可选 hooks.py
+  }
+  class fusion_adjudication {
+    mismatch 三问归因
+    复核后再改 IR
+    无法裁决则标 conflict
+  }
+}
+
+rectangle "L3 跨阶段契约（文件，不驻内存）" as L3 #F3E8FF {
+  class ir_schema {
+    IR 1.0：model / contract / nodes
+    status 五态
+    +validate() 依据五要素
+  }
+  class spec {
+    spec_version 1.0
+    model.entry + traces[]
+    shims[] / hooks
+  }
+  class measured {
+    <job>.measured.json
+    graph 容器 + derived.nodes
+    tree_path / input_tensors
+  }
+}
+
+rectangle "L4 确定性工具（零模型知识）" as L4 #E7F6EE {
+  class audit_model {
+    S0：AST，不执行毛坯
+    +audit() 缺依赖与入口类
+    +summarize() 中文摘要
+  }
+  class FileAudit {
+    ast.NodeVisitor
+    +visit_ClassDef()
+    +visit_Import() / visit_Try()
+  }
+  class capture_driver {
+    S2b 抓图驱动
+    +load_spec() +build_model()
+    +run_job() +derive_nodes()
+  }
+  class fuse {
+    S3 只做机械对齐
+    +load_measured()
+    +compare_shapes()
+  }
+  class render_fusion {
+    S4b 注入 HTML
+    +build_config()
+    +inject() 幂等且回读
+  }
+}
+
+rectangle "L5 运行时适配（本次任务专属，不进 kit）" as L5 #FDECEC {
+  class DriverContext {
+    钩子可见上下文
+    workspace / model_dir / spec
+    +log()
+  }
+  class hooks {
+    可选 make_model
+    make_inputs(scenario)
+    wrap_model
+  }
+  class Shim {
+    nn.Module 挂到 mount_name
+    rebind 接管外部 kernel
+    图上红虚线
+  }
+  class TorchVista {
+    process_graph 真实前向
+    plot_graph 导出 HTML
+    forced_depth 控制登记
+  }
+}
+
+rectangle "L6 毛坯与运行环境" as L6 #F4F4F4 {
+  class ModelBlank {
+    inputs/<模型>/*.py
+    随机初始化，不拉权重
+    零写入（含 pyc）
+  }
+  class Runtime {
+    .venv：torch 2.14.0
+    PYTHONDONTWRITEBYTECODE=1
+    AST 标准库
+  }
+}
+
+rectangle "旁路 · 不进入单模型分析" as Side #FAFAFA {
+  class run_tests {
+    tests/run_tests.py
+    合成夹具走全链
+    不断言真实模型结论
+  }
+  class Observer {
+    REPORT.md 验收入口
+    monitor.md 进展日志
+    代理禁止阅读 monitor
+  }
+}
+
+L1 -[hidden]down- L2
+L2 -[hidden]down- L3
+L3 -[hidden]down- L4
+L4 -[hidden]down- L5
+L5 -[hidden]down- L6
+L6 -[hidden]down- Side
+
+DRIVE ..> SKILL : 先读
+SKILL ..> logical_analysis : 阶段二
+SKILL ..> capture_planning : 阶段三
+SKILL ..> fusion_adjudication : 阶段四
+capture_planning ..> shim_development : 缺 kernel 时
+
+logical_analysis ..> ir_schema : 先落 analysis_ir
+capture_planning ..> spec : 代理填写
+capture_driver ..> measured : 每作业落盘
+fuse ..> ir_schema : 草稿 final_ir
+
+audit_model *-- FileAudit : 每文件一个
+audit_model ..> ModelBlank : 只解析
+capture_driver *-- DriverContext
+capture_driver o-- spec : 注入
+capture_driver o-- hooks : 可选注入
+capture_driver o-- Shim : 挂树并重绑
+capture_driver ..> TorchVista
+capture_driver ..> ModelBlank : 导入并前向
+fuse ..> measured : 模板对齐
+render_fusion ..> ir_schema : 读定稿状态
+TorchVista ..> Runtime
+FileAudit ..> Runtime : ast
+
+run_tests ..> audit_model : 夹具
+Observer ..> SPEC : 对照验收
+
+note bottom of logical_analysis
+  独立性铁壁：notes.md / analysis_ir
+  必须早于任何 capture 产物
+end note
+
+legend bottom
+  图回答的问题：一次模型分析从哪进入、谁做判断、谁只跑确定性工具。
+  颜色：蓝=任务契约　橙=代理规程　紫=跨阶段文件契约　绿=kit 脚本
+        红=本次运行的适配与抓图　灰=毛坯和解释器　旁路框=观测与机制测试
+  箭头：*-- 工具构造并持有　o-- 从 spec/hooks 注入的共享对象　..> 调用或读写
+  主路径：DRIVE → SKILL → 规程 → 契约文件 → 四个脚本 → TorchVista / 毛坯
+  读图入口：从 L1 的 DRIVE 往下。脚本之间不互相调用，由代理按阶段串起来。
+  双引擎在 L2 分开：logical_analysis 不读 measured；fuse 才把两侧并到同一 IR。
+endlegend
+@enduml

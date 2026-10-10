@@ -1,0 +1,163 @@
+{
+  "spec_version": "1.0",
+  "model": {
+    "name": "DeepSeek-V3.2（缩水实例化：4 层 / 8 头 / 32 专家，分支维度保真）",
+    "dir": "inputs/DeepSeek-V3.2",
+    "entry": {
+      "sys_path": [
+        "outputs/DeepSeek-V3.2/capture/shims",
+        "inputs/DeepSeek-V3.2/inference"
+      ],
+      "module": "model",
+      "class": "Transformer",
+      "constructor_args": {}
+    },
+    "default_dtype": "bfloat16",
+    "seed": 0,
+    "eval_mode": true,
+    "init_distributed": true
+  },
+  "hooks": "outputs/DeepSeek-V3.2/capture/hooks.py",
+  "shims": [
+    {
+      "module": "outputs/DeepSeek-V3.2/capture/shims/kernel.py",
+      "class": "ActQuantShim",
+      "mount_name": "act_quant",
+      "rebind": [{ "module": "model", "attr": "act_quant" }]
+    },
+    {
+      "module": "outputs/DeepSeek-V3.2/capture/shims/kernel.py",
+      "class": "Fp8GemmShim",
+      "mount_name": "fp8_gemm",
+      "rebind": [{ "module": "model", "attr": "fp8_gemm" }]
+    },
+    {
+      "module": "outputs/DeepSeek-V3.2/capture/shims/kernel.py",
+      "class": "Fp8IndexShim",
+      "mount_name": "fp8_index",
+      "rebind": [{ "module": "model", "attr": "fp8_index" }]
+    }
+  ],
+  "traces": [
+    {
+      "id": "macro_prefill_d0",
+      "kind": "macro",
+      "scenario": "prefill",
+      "inputs": { "hook": true },
+      "forced_depth": 0,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "macro_prefill_d1",
+      "kind": "macro",
+      "scenario": "prefill",
+      "inputs": { "hook": true },
+      "forced_depth": 1,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "macro_prefill_d2",
+      "kind": "macro",
+      "scenario": "prefill",
+      "inputs": { "hook": true },
+      "forced_depth": 2,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "macro_prefill_d3",
+      "kind": "macro",
+      "scenario": "prefill",
+      "inputs": { "hook": true },
+      "forced_depth": 3,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "macro_decode_d0",
+      "kind": "macro",
+      "scenario": "decode",
+      "inputs": { "hook": true },
+      "forced_depth": 0,
+      "collapse_depth": 1,
+      "rebuild": false
+    },
+    {
+      "id": "macro_decode_d1",
+      "kind": "macro",
+      "scenario": "decode",
+      "inputs": { "hook": true },
+      "forced_depth": 1,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "macro_decode_d2",
+      "kind": "macro",
+      "scenario": "decode",
+      "inputs": { "hook": true },
+      "forced_depth": 2,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "macro_decode_d3",
+      "kind": "macro",
+      "scenario": "decode",
+      "inputs": { "hook": true },
+      "forced_depth": 3,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "macro_prefill_d4",
+      "kind": "macro",
+      "scenario": "prefill",
+      "inputs": { "hook": true },
+      "forced_depth": 4,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "macro_decode_d4",
+      "kind": "macro",
+      "scenario": "decode",
+      "inputs": { "hook": true },
+      "forced_depth": 4,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "micro_dense_block",
+      "kind": "micro",
+      "target": "layers.0",
+      "scenario": "prefill",
+      "inputs": { "hook": true },
+      "forced_depth": 0,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "micro_moe_block",
+      "kind": "micro",
+      "target": "layers.3",
+      "scenario": "prefill",
+      "inputs": { "hook": true },
+      "forced_depth": 0,
+      "collapse_depth": 1,
+      "rebuild": true
+    },
+    {
+      "id": "micro_mla_attn",
+      "kind": "micro",
+      "target": "layers.0.attn",
+      "scenario": "prefill",
+      "inputs": { "hook": true },
+      "forced_depth": 0,
+      "collapse_depth": 1,
+      "rebuild": true
+    }
+  ]
+}

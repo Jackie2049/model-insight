@@ -1,0 +1,52 @@
+{
+  "spec_version": "1.0",
+  "model": {
+    "name": "Kimi-K3（缩水实例化：文本 4 层/512 hidden/8 头/4 专家/词表 1000；视觉 2 层/128 hidden/4 头/pos_emb 8×8×2）",
+    "dir": "inputs/Kimi-K3",
+    "entry": {
+      "sys_path": [
+        "outputs/Kimi-K3/capture/shims",
+        "inputs/Kimi-K3"
+      ],
+      "hooks": true
+    },
+    "default_dtype": "bfloat16",
+    "seed": 0,
+    "eval_mode": true,
+    "init_distributed": false
+  },
+  "hooks": "outputs/Kimi-K3/capture/hooks.py",
+  "shims": [],
+  "notes": {
+    "shims 说明": "本模型的替换件均为导入级/注册级，不适用 shims[] 的类挂树机制：R1 einops.rearrange 子集与 R2 fla 包 shim 经 sys_path 首位遮蔽生效（接管方式=被 import，毛坯无回退分支）；R3 语言侧 FA2 等价函数由 hooks.make_model 注册进 ALL_ATTENTION_FUNCTIONS（接管方式=注册表键覆盖，毛坯构造期无条件强制 flash_attention_2）。数学定义与等价验证留痕见 capture/shims/README.md 与 hooks.py 头注。",
+    "兼容补丁": "transformers 5.17.0 适配 4 项（OutputRecorder 别名 / create_causal_mask 形参与 KimiDynamicCache 短路 / tie_weights 签名 / config._attn_implementation 回写），全部内存级，见 hooks.py。",
+    "scale_note": "分支维度保真：situ 激活、latent MoE+routed_norm、MLA 低秩+输出门、KDA 短卷积 k=4+全秩门控+gate_lower_bound=-5、attn_res_block_size=2（等比机制）、KDA/MLA 混合层型（kda_layers 1-indexed [1,2,3]）、视觉 sd2_tpool+双线性插值+2D RoPE。规模缩水声明：hidden 7168→512、层数 93→4（KDA×3+MLA×1）、词表 163840→1000、专家 896→4、top-k 16→2、专家中间维 3072→128、latent 3584→256、dense 中间维 33792→1024、共享专家中间维 6144→256、MLA 96 头→8（q_lora 1536→64、kv_lora 512→32、nope 128→16、rope 64→8、v_head 128→16）、KDA 96×128→8×32、视觉 27 层→2 层、视觉 hidden 1024→128、头 12→4、pos_emb 64×64×4→8×8×2、proj 中间维 4096→128。权重随机初始化（seed=0），数值结论不外推。"
+  },
+  "traces": [
+    { "id": "macro_prefill_vision", "kind": "macro", "scenario": "prefill_vision", "inputs": { "hook": true }, "forced_depth": 12, "attr_names": true },
+    { "id": "macro_prefill_text", "kind": "macro", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 12, "attr_names": true },
+    { "id": "macro_decode", "kind": "macro", "scenario": "decode", "inputs": { "hook": true }, "forced_depth": 12, "attr_names": true },
+
+    { "id": "micro_vit_patch_embed", "kind": "micro", "target": "vision_tower.patch_embed", "scenario": "prefill_vision", "inputs": { "hook": true }, "forced_depth": 4 },
+    { "id": "micro_vit_pos_emb", "kind": "micro", "target": "vision_tower.patch_embed.pos_emb", "scenario": "prefill_vision", "inputs": { "hook": true }, "forced_depth": 3 },
+    { "id": "micro_vit_layer0", "kind": "micro", "target": "vision_tower.encoder.blocks.0", "scenario": "prefill_vision", "inputs": { "hook": true }, "forced_depth": 4 },
+    { "id": "micro_projector", "kind": "micro", "target": "mm_projector", "scenario": "prefill_vision", "inputs": { "hook": true }, "forced_depth": 4 },
+
+    { "id": "micro_layer_kda0", "kind": "micro", "target": "language_model.model.layers.0", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 4 },
+    { "id": "micro_layer_kda_moe1", "kind": "micro", "target": "language_model.model.layers.1", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 4 },
+    { "id": "micro_layer_mla3", "kind": "micro", "target": "language_model.model.layers.3", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 4 },
+
+    { "id": "micro_attn_kda", "kind": "micro", "target": "language_model.model.layers.0.self_attn", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 4 },
+    { "id": "micro_attn_mla", "kind": "micro", "target": "language_model.model.layers.3.self_attn", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 4 },
+    { "id": "micro_attn_kda_decode", "kind": "micro", "target": "language_model.model.layers.0.self_attn", "scenario": "decode", "inputs": { "hook": true }, "forced_depth": 4 },
+    { "id": "micro_attn_mla_decode", "kind": "micro", "target": "language_model.model.layers.3.self_attn", "scenario": "decode", "inputs": { "hook": true }, "forced_depth": 4 },
+
+    { "id": "micro_moe_gate", "kind": "micro", "target": "language_model.model.layers.1.block_sparse_moe.gate", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 3 },
+    { "id": "micro_expert0", "kind": "micro", "target": "language_model.model.layers.1.block_sparse_moe.experts.0", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 3 },
+    { "id": "micro_mlp_dense", "kind": "micro", "target": "language_model.model.layers.0.mlp", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 3 },
+
+    { "id": "micro_embed", "kind": "micro", "target": "language_model.model.embed_tokens", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 1 },
+    { "id": "micro_norm", "kind": "micro", "target": "language_model.model.norm", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 1 },
+    { "id": "micro_lm_head", "kind": "micro", "target": "language_model.lm_head", "scenario": "prefill_text", "inputs": { "hook": true }, "forced_depth": 1 }
+  ]
+}

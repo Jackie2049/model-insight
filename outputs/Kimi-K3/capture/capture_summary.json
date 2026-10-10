@@ -1,0 +1,206 @@
+{
+  "spec": "/Volumes/Agent/workspace/projects/model-insight/model-insight-0928/outputs/Kimi-K3/capture/spec.json",
+  "jobs": [
+    {
+      "id": "macro_prefill_vision",
+      "status": "ok",
+      "nodes": 5210,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.2,
+      "exception": null,
+      "html": "macro_prefill_vision.html",
+      "measured": "macro_prefill_vision.measured.json"
+    },
+    {
+      "id": "macro_prefill_text",
+      "status": "ok",
+      "nodes": 2528,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.11,
+      "exception": null,
+      "html": "macro_prefill_text.html",
+      "measured": "macro_prefill_text.measured.json"
+    },
+    {
+      "id": "macro_decode",
+      "status": "ok",
+      "nodes": 1444,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.09,
+      "exception": null,
+      "html": "macro_decode.html",
+      "measured": "macro_decode.measured.json"
+    },
+    {
+      "id": "micro_vit_patch_embed",
+      "status": "ok",
+      "nodes": 31,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_vit_patch_embed.html",
+      "measured": "micro_vit_patch_embed.measured.json"
+    },
+    {
+      "id": "micro_vit_pos_emb",
+      "status": "ok",
+      "nodes": 16,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.01,
+      "exception": null,
+      "html": "micro_vit_pos_emb.html",
+      "measured": "micro_vit_pos_emb.measured.json"
+    },
+    {
+      "id": "micro_vit_layer0",
+      "status": "ok",
+      "nodes": 84,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.01,
+      "exception": null,
+      "html": "micro_vit_layer0.html",
+      "measured": "micro_vit_layer0.measured.json"
+    },
+    {
+      "id": "micro_projector",
+      "status": "ok",
+      "nodes": 18,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_projector.html",
+      "measured": "micro_projector.measured.json"
+    },
+    {
+      "id": "micro_layer_kda0",
+      "status": "ok",
+      "nodes": 612,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.04,
+      "exception": null,
+      "html": "micro_layer_kda0.html",
+      "measured": "micro_layer_kda0.measured.json"
+    },
+    {
+      "id": "micro_layer_kda_moe1",
+      "status": "ok",
+      "nodes": 810,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.05,
+      "exception": null,
+      "html": "micro_layer_kda_moe1.html",
+      "measured": "micro_layer_kda_moe1.measured.json"
+    },
+    {
+      "id": "micro_layer_mla3",
+      "status": "ok",
+      "nodes": 374,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.01,
+      "exception": null,
+      "html": "micro_layer_mla3.html",
+      "measured": "micro_layer_mla3.measured.json"
+    },
+    {
+      "id": "micro_attn_kda",
+      "status": "ok",
+      "nodes": 521,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.03,
+      "exception": null,
+      "html": "micro_attn_kda.html",
+      "measured": "micro_attn_kda.measured.json"
+    },
+    {
+      "id": "micro_attn_mla",
+      "status": "ok",
+      "nodes": 85,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_attn_mla.html",
+      "measured": "micro_attn_mla.measured.json"
+    },
+    {
+      "id": "micro_attn_kda_decode",
+      "status": "ok",
+      "nodes": 162,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.03,
+      "exception": null,
+      "html": "micro_attn_kda_decode.html",
+      "measured": "micro_attn_kda_decode.measured.json"
+    },
+    {
+      "id": "micro_attn_mla_decode",
+      "status": "ok",
+      "nodes": 89,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_attn_mla_decode.html",
+      "measured": "micro_attn_mla_decode.measured.json"
+    },
+    {
+      "id": "micro_moe_gate",
+      "status": "ok",
+      "nodes": 25,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_moe_gate.html",
+      "measured": "micro_moe_gate.measured.json"
+    },
+    {
+      "id": "micro_expert0",
+      "status": "ok",
+      "nodes": 27,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_expert0.html",
+      "measured": "micro_expert0.measured.json"
+    },
+    {
+      "id": "micro_mlp_dense",
+      "status": "ok",
+      "nodes": 27,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.01,
+      "exception": null,
+      "html": "micro_mlp_dense.html",
+      "measured": "micro_mlp_dense.measured.json"
+    },
+    {
+      "id": "micro_embed",
+      "status": "ok",
+      "nodes": 5,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_embed.html",
+      "measured": "micro_embed.measured.json"
+    },
+    {
+      "id": "micro_norm",
+      "status": "ok",
+      "nodes": 14,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_norm.html",
+      "measured": "micro_norm.measured.json"
+    },
+    {
+      "id": "micro_lm_head",
+      "status": "ok",
+      "nodes": 4,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.0,
+      "exception": null,
+      "html": "micro_lm_head.html",
+      "measured": "micro_lm_head.measured.json"
+    }
+  ],
+  "all_ok": true
+}

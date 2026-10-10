@@ -1,0 +1,136 @@
+{
+  "spec": "/Volumes/Agent/workspace/projects/model-insight/model-insight-0928/outputs/DeepSeek-V3.2/capture/spec.json",
+  "jobs": [
+    {
+      "id": "macro_prefill_d0",
+      "status": "ok",
+      "nodes": 20,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.34,
+      "exception": null,
+      "html": "macro_prefill_d0.html",
+      "measured": "macro_prefill_d0.measured.json"
+    },
+    {
+      "id": "macro_prefill_d1",
+      "status": "ok",
+      "nodes": 48,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.3,
+      "exception": null,
+      "html": "macro_prefill_d1.html",
+      "measured": "macro_prefill_d1.measured.json"
+    },
+    {
+      "id": "macro_prefill_d2",
+      "status": "ok",
+      "nodes": 555,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.32,
+      "exception": null,
+      "html": "macro_prefill_d2.html",
+      "measured": "macro_prefill_d2.measured.json"
+    },
+    {
+      "id": "macro_prefill_d3",
+      "status": "ok",
+      "nodes": 1623,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.31,
+      "exception": null,
+      "html": "macro_prefill_d3.html",
+      "measured": "macro_prefill_d3.measured.json"
+    },
+    {
+      "id": "macro_decode_d0",
+      "status": "ok",
+      "nodes": 17,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.17,
+      "exception": null,
+      "html": "macro_decode_d0.html",
+      "measured": "macro_decode_d0.measured.json"
+    },
+    {
+      "id": "macro_decode_d1",
+      "status": "ok",
+      "nodes": 45,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.18,
+      "exception": null,
+      "html": "macro_decode_d1.html",
+      "measured": "macro_decode_d1.measured.json"
+    },
+    {
+      "id": "macro_decode_d2",
+      "status": "ok",
+      "nodes": 644,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.19,
+      "exception": null,
+      "html": "macro_decode_d2.html",
+      "measured": "macro_decode_d2.measured.json"
+    },
+    {
+      "id": "macro_decode_d3",
+      "status": "ok",
+      "nodes": 1692,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.2,
+      "exception": null,
+      "html": "macro_decode_d3.html",
+      "measured": "macro_decode_d3.measured.json"
+    },
+    {
+      "id": "macro_prefill_d4",
+      "status": "ok",
+      "nodes": 3817,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.59,
+      "exception": null,
+      "html": "macro_prefill_d4.html",
+      "measured": "macro_prefill_d4.measured.json"
+    },
+    {
+      "id": "macro_decode_d4",
+      "status": "ok",
+      "nodes": 3658,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.33,
+      "exception": null,
+      "html": "macro_decode_d4.html",
+      "measured": "macro_decode_d4.measured.json"
+    },
+    {
+      "id": "micro_dense_block",
+      "status": "ok",
+      "nodes": 11,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.1,
+      "exception": null,
+      "html": "micro_dense_block.html",
+      "measured": "micro_dense_block.measured.json"
+    },
+    {
+      "id": "micro_moe_block",
+      "status": "ok",
+      "nodes": 11,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.25,
+      "exception": null,
+      "html": "micro_moe_block.html",
+      "measured": "micro_moe_block.measured.json"
+    },
+    {
+      "id": "micro_mla_attn",
+      "status": "ok",
+      "nodes": 115,
+      "failed_nodes": 0,
+      "elapsed_sec": 0.04,
+      "exception": null,
+      "html": "micro_mla_attn.html",
+      "measured": "micro_mla_attn.measured.json"
+    }
+  ],
+  "all_ok": true
+}

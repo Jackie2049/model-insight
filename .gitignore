@@ -1,0 +1,11 @@
+# Python 环境与字节码
+.venv/
+__pycache__/
+*.pyc
+
+# 系统杂质
+.DS_Store
+
+# 测试再生成物
+.pytest_cache/
+agent-kit_ops-analysis/tests/run/
