@@ -30,7 +30,7 @@ python3 -m http.server 8899
 
 ## 快速开始
 
-需要 Python ≥ 3.10，以及能够读取文件、执行命令的 AI 编码代理。
+需要 Python ≥ 3.10，以及能够读取文件、执行命令的 AI Coding Agent。
 
 ```bash
 python3 -m venv .venv
@@ -38,7 +38,7 @@ python3 -m venv .venv
 .venv/bin/python agent-kit_ops-analysis/tests/run_tests.py
 ```
 
-将模型实现和配置放入 `inputs/<模型名>/`，向代理发送：
+将模型实现和配置放入 `inputs/<模型名>/`，向 Agent 发送：
 
 ```text
 阅读 agent-kit_ops-analysis/SKILL.md，分析 inputs/<模型名>/ 中的模型毛坯。
@@ -60,6 +60,6 @@ python3 -m venv .venv
 
 ## 当前范围
 
-示例运行使用**缩小规模、随机初始化**的模型实例；捕获的 shape 对应各自的测试配置。部分外部 kernel 使用有记录的替换实现，验证等级及未覆盖范围见 [验证结果](RESULTS.md)。当前通过 AI 编码代理运行，尚无在线上传入口。
+示例运行使用**缩小规模、随机初始化**的模型实例；捕获的 shape 对应各自的测试配置。部分外部 kernel 使用有记录的替换实现，验证等级及未覆盖范围见 [验证结果](RESULTS.md)。当前通过 AI Coding Agent 运行，尚无在线上传入口。
 
 项目代码采用 [MIT License](LICENSE)；`inputs/` 中的第三方模型源码遵循各自的许可。
