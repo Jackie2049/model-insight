@@ -1,0 +1,240 @@
+{
+  "schema_version": "0.2",
+  "generated_by": "render_index.py",
+  "model": "Kimi-K3",
+  "summary": {
+    "statuses": {
+      "verified": 64,
+      "mismatch": 0,
+      "llm_only": 5,
+      "capture_only": 0,
+      "conflict": 0
+    },
+    "totalNodes": 69,
+    "replacementCount": 4,
+    "replacementsFull": "· R1 einops.rearrange 子集 shim（sys.path 首位导入级遮蔽，覆盖 KDA 用到的 4 种模式串）\n· R2 fla 包 shim：FusedRMSNormGated / ShortConvolution / chunk_kda / fused_recurrent_kda / prepare_* / tensor_cache 六组件数学重建\n· R3 语言侧 FA2 纯 torch 等价函数注册（softmax(QK^T·scale)V，bottom-right 因果）\n· P transformers 5.17.0 兼容补丁 4 项：OutputRecorder 迁移别名 / create_causal_mask 形参与 KimiDynamicCache 短路 / tie_weights 签名 / config._attn_implementation 回写",
+    "scaleNote": "分支维度全部保真：situ 激活（fp32 内部）、latent MoE+routed_norm、MLA 低秩+输出门+无 o_norm（o_norm 为 KDA 专属 FusedRMSNormGated）、KDA 短卷积 k=4+全秩门控+gate_lower_bound=-…"
+  },
+  "views": [
+    {
+      "id": "macro_prefill_vision",
+      "file": "macro_prefill_vision.html",
+      "kind": "macro",
+      "scenario": "prefill_vision",
+      "depth": null,
+      "target": null,
+      "title": "整模型",
+      "nodes": 5210,
+      "status": "ok"
+    },
+    {
+      "id": "macro_prefill_text",
+      "file": "macro_prefill_text.html",
+      "kind": "macro",
+      "scenario": "prefill_text",
+      "depth": null,
+      "target": null,
+      "title": "整模型",
+      "nodes": 2528,
+      "status": "ok"
+    },
+    {
+      "id": "macro_decode",
+      "file": "macro_decode.html",
+      "kind": "macro",
+      "scenario": "decode",
+      "depth": null,
+      "target": null,
+      "title": "整模型",
+      "nodes": 1444,
+      "status": "ok"
+    },
+    {
+      "id": "micro_vit_patch_embed",
+      "file": "micro_vit_patch_embed.html",
+      "kind": "micro",
+      "scenario": "prefill_vision",
+      "depth": 0,
+      "target": "vision_tower.patch_embed",
+      "title": "vision_tower.patch_embed",
+      "nodes": 31,
+      "status": "ok"
+    },
+    {
+      "id": "micro_vit_pos_emb",
+      "file": "micro_vit_pos_emb.html",
+      "kind": "micro",
+      "scenario": "prefill_vision",
+      "depth": 0,
+      "target": "vision_tower.patch_embed.pos_emb",
+      "title": "vision_tower.patch_embed.pos_emb",
+      "nodes": 16,
+      "status": "ok"
+    },
+    {
+      "id": "micro_vit_layer0",
+      "file": "micro_vit_layer0.html",
+      "kind": "micro",
+      "scenario": "prefill_vision",
+      "depth": 0,
+      "target": "vision_tower.encoder.blocks.0",
+      "title": "vision_tower.encoder.blocks.0",
+      "nodes": 84,
+      "status": "ok"
+    },
+    {
+      "id": "micro_projector",
+      "file": "micro_projector.html",
+      "kind": "micro",
+      "scenario": "prefill_vision",
+      "depth": 0,
+      "target": "mm_projector",
+      "title": "mm_projector",
+      "nodes": 18,
+      "status": "ok"
+    },
+    {
+      "id": "micro_layer_kda0",
+      "file": "micro_layer_kda0.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.layers.0",
+      "title": "language_model.model.layers.0",
+      "nodes": 612,
+      "status": "ok"
+    },
+    {
+      "id": "micro_layer_kda_moe1",
+      "file": "micro_layer_kda_moe1.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.layers.1",
+      "title": "language_model.model.layers.1",
+      "nodes": 810,
+      "status": "ok"
+    },
+    {
+      "id": "micro_layer_mla3",
+      "file": "micro_layer_mla3.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.layers.3",
+      "title": "language_model.model.layers.3",
+      "nodes": 374,
+      "status": "ok"
+    },
+    {
+      "id": "micro_attn_kda",
+      "file": "micro_attn_kda.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.layers.0.self_attn",
+      "title": "language_model.model.layers.0.self_attn",
+      "nodes": 521,
+      "status": "ok"
+    },
+    {
+      "id": "micro_attn_mla",
+      "file": "micro_attn_mla.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.layers.3.self_attn",
+      "title": "language_model.model.layers.3.self_attn",
+      "nodes": 85,
+      "status": "ok"
+    },
+    {
+      "id": "micro_attn_kda_decode",
+      "file": "micro_attn_kda_decode.html",
+      "kind": "micro",
+      "scenario": "decode",
+      "depth": 0,
+      "target": "language_model.model.layers.0.self_attn",
+      "title": "language_model.model.layers.0.self_attn",
+      "nodes": 162,
+      "status": "ok"
+    },
+    {
+      "id": "micro_attn_mla_decode",
+      "file": "micro_attn_mla_decode.html",
+      "kind": "micro",
+      "scenario": "decode",
+      "depth": 0,
+      "target": "language_model.model.layers.3.self_attn",
+      "title": "language_model.model.layers.3.self_attn",
+      "nodes": 89,
+      "status": "ok"
+    },
+    {
+      "id": "micro_moe_gate",
+      "file": "micro_moe_gate.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.layers.1.block_sparse_moe.gate",
+      "title": "language_model.model.layers.1.block_sparse_moe.gate",
+      "nodes": 25,
+      "status": "ok"
+    },
+    {
+      "id": "micro_expert0",
+      "file": "micro_expert0.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.layers.1.block_sparse_moe.experts.0",
+      "title": "language_model.model.layers.1.block_sparse_moe.experts.0",
+      "nodes": 27,
+      "status": "ok"
+    },
+    {
+      "id": "micro_mlp_dense",
+      "file": "micro_mlp_dense.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.layers.0.mlp",
+      "title": "language_model.model.layers.0.mlp",
+      "nodes": 27,
+      "status": "ok"
+    },
+    {
+      "id": "micro_embed",
+      "file": "micro_embed.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.embed_tokens",
+      "title": "language_model.model.embed_tokens",
+      "nodes": 5,
+      "status": "ok"
+    },
+    {
+      "id": "micro_norm",
+      "file": "micro_norm.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.model.norm",
+      "title": "language_model.model.norm",
+      "nodes": 14,
+      "status": "ok"
+    },
+    {
+      "id": "micro_lm_head",
+      "file": "micro_lm_head.html",
+      "kind": "micro",
+      "scenario": "prefill_text",
+      "depth": 0,
+      "target": "language_model.lm_head",
+      "title": "language_model.lm_head",
+      "nodes": 4,
+      "status": "ok"
+    }
+  ]
+}

@@ -41,7 +41,7 @@
 | `llm-analysis/` | `analysis_ir.json` + `notes.md`（推导笔记，独立原始记录，**不可回改**） | 阶段二 |
 | `capture/` | `spec.json`、`hooks.py`(可选)、`shims/`、每作业 `<id>.html` + `<id>.measured.json`、`capture_summary.json` | 阶段三 |
 | `fusion/` | `final_ir.json`、`diff_report.md`（含复核记录） | 阶段四 |
-| `viz/` | 最终页面（注入后的 HTML 副本 + 入口 README） | 阶段五 |
+| `viz/` | 最终页面（注入后的 HTML 副本 + index.html 集成面板 + views.json + 入口 README） | 阶段五 |
 | `monitor.md` | 观测流水（观测者写；执行代理禁读禁写，非你的产物） | 观测者全程 |
 
 ## 3. 阶段流程
@@ -101,9 +101,15 @@ capture_only 补分析或说明、缩水声明合并、conflict 诚实保留。
 .venv/bin/python agent-kit_ops-analysis/scripts/render_fusion.py \
     --html outputs/<模型>/capture --ir outputs/<模型>/fusion/final_ir.json \
     [--spec outputs/<模型>/capture/spec.json]
+.venv/bin/python agent-kit_ops-analysis/scripts/render_index.py \
+    --capture-dir outputs/<模型>/capture --ir outputs/<模型>/fusion/final_ir.json \
+    --out outputs/<模型>/viz
 ```
-把注入后的 HTML 复制到 `viz/`（保留 capture/ 原件），写 `viz/README.md`：
-入口页面、每个 HTML 是什么场景/层级、面板与标记的读法。
+
+把注入后的 HTML 复制到 `viz/`（保留 capture/ 原件）。`render_index.py` 随后
+生成 `viz/index.html` 集成面板与 `viz/views.json`：数据实时读取 capture_summary
+与 final_ir，五态统计与替换件数禁手改这两个文件（重跑即重算）。写
+`viz/README.md`：以 index.html 为入口，说明每个 HTML 的场景/层级、面板与标记的读法。
 
 ### 阶段六 · 总自检
 
@@ -119,6 +125,7 @@ capture_only 补分析或说明、缩水声明合并、conflict 诚实保留。
 | `scripts/fuse.py --analysis <ir> --capture-dir <目录> --out <目录>` | 机械融合 |
 | `scripts/ir_schema.py <ir.json>` / `--example` / `--template` | IR 校验 / 样例 / 模板 |
 | `scripts/render_fusion.py --html <文件或目录> --ir <ir> [--spec <spec>]` | HTML 注入 |
+| `scripts/render_index.py --capture-dir <目录> --ir <ir> --out <viz 目录>` | viz 集成面板（index.html + views.json） |
 
 ## 5. 通用纪律
 

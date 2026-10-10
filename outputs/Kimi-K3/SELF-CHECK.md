@@ -140,3 +140,10 @@ SPEC §3 指定时间对 `notes.md`(13:53:28) 早于 `capture/capture_summary.js
    仅有源码与形状链旁证，节点保留 llm_only。
 4. merge 图文合并的根域算子无法与 output_attn_res 逐条区分——节点保留 llm_only。
 5. 权重为随机初始化，一切数值结论不外推（notes.md 开放问题 4）。
+
+## 事后补充（kit 维护者，非本 run 交付）
+
+kit 在本 run 之后升级了可视化流程：`viz/index.html` 集成面板与 `viz/views.json` 由
+`agent-kit_ops-analysis/scripts/render_index.py` 事后生成（数据实时读取 capture_summary
+与 final_ir，五态/替换件计数与 IR 同源）。本 run 其余交付物未改动；在升级后的 kit 下，
+这两个文件属于阶段五标准产出（SPEC 交付物 9）。

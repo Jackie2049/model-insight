@@ -50,3 +50,6 @@ IR（`final_ir.json`）用模板路径聚合层间重复结构：`{i}` = 层号�
 ## 环境备注
 
 抓图在宿主 Python（`.venv`，torch + torchvista）完成；tilelang 与 fast_hadamard_transform CUDA 库未安装（即替换件存在的原因，见 audit `missing_deps`）。`init_distributed=true`（毛坯 Indexer 有 dist.broadcast，多卡语义下单卡退化执行，声明于 IR 对应节点）。
+
+> 事后补充（kit 维护者）：`index.html` 为聚合面板，由 `render_index.py` 生成
+> （场景/视图切换、iframe 预览、分析摘要），浏览各页面从它进入即可。

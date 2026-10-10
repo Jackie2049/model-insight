@@ -97,3 +97,6 @@
   后者是卷积域 (B,P,K')，dim1 语义不同。
 - 规模为缩水实例化（H=512、4 层、4 专家等），**数值结论不外推**；全量对照见
   `final_ir.json` → `model.config_snapshot` → `config_json_全量对照`。
+
+> 事后补充（kit 维护者）：`index.html` 为聚合面板，由 `render_index.py` 生成
+> （场景/视图切换、iframe 预览、分析摘要），浏览各页面从它进入即可。

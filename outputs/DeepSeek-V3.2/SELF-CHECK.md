@@ -56,3 +56,10 @@
 5. **decode 作业缓存形态**：d0 作业 rebuild=false 真实串联 prefill 缓存续写；其余 decode 作业重建模型零缓存运行（形状/dtype 等价，声明于 scale_note ②）。
 6. **专家族退化路由**：随机初始化 → 门控分数近似均匀 → 全 token 路由相同 top-8 专家，NJ 跨实例一致；24 个未激活专家无实测记录（折叠声明覆盖）。真实权重下 NJ 将随专家变化。
 7. **单卡退化**：init_distributed=true 单卡执行，Indexer 的 dist.broadcast（model.py L484-486 无 rank 守卫）在单卡语义下直通；多卡行为超出本抓图范围（IR 对应节点已声明）。
+
+## 事后补充（kit 维护者，非本 run 交付）
+
+kit 在本 run 之后升级了可视化流程：`viz/index.html` 集成面板与 `viz/views.json` 由
+`agent-kit_ops-analysis/scripts/render_index.py` 事后生成（数据实时读取 capture_summary
+与 final_ir，五态/替换件计数与 IR 同源）。本 run 其余交付物未改动；在升级后的 kit 下，
+这两个文件属于阶段五标准产出（SPEC 交付物 9）。

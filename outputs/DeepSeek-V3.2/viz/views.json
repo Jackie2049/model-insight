@@ -1,5 +1,20 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
+  "generated_by": "render_index.py",
+  "model": "DeepSeek-V3.2",
+  "summary": {
+    "statuses": {
+      "verified": 66,
+      "mismatch": 1,
+      "llm_only": 1,
+      "capture_only": 0,
+      "conflict": 0
+    },
+    "totalNodes": 68,
+    "replacementCount": 4,
+    "replacementsFull": "· kernel.act_quant（tilelang 实现，毛坯 inference/kernel.py L87-111 fn + L36-84 kernel）\n· kernel.fp8_gemm（tilelang 实现，毛坯 inference/kernel.py L171-196 fn + L114-168 kernel）\n· kernel.fp8_index（tilelang 实现，毛坯 inference/kernel.py L254-274 fn + L199-251 kernel）\n· fast_hadamard_transform.hadamard_transform（CUDA 库，model.py L428-432 rotate_activation 内延迟 import，L472-473 对 Indexer q/k 调用）",
+    "scaleNote": "分支维度保真、规模维度缩水（不冒充全量）。671B 全量 → 抓图实例化对照：vocab_size 129280→1024；n_layers 61→4（层 0-2 稠密 + 层 3 MoE，保留真实层型边界）；n_heads 128→8（头结构不变：nope 128 / rop…"
+  },
   "views": [
     {
       "id": "macro_prefill_d0",
@@ -10,8 +25,7 @@
       "target": null,
       "title": "模型骨架",
       "nodes": 20,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "macro_prefill_d1",
@@ -22,8 +36,7 @@
       "target": null,
       "title": "层内主链",
       "nodes": 48,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "macro_prefill_d2",
@@ -34,8 +47,7 @@
       "target": null,
       "title": "功能模块",
       "nodes": 555,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "macro_prefill_d3",
@@ -46,8 +58,7 @@
       "target": null,
       "title": "内部运算",
       "nodes": 1623,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "macro_decode_d0",
@@ -58,8 +69,7 @@
       "target": null,
       "title": "模型骨架",
       "nodes": 17,
-      "status": "ok",
-      "rebuild": false
+      "status": "ok"
     },
     {
       "id": "macro_decode_d1",
@@ -70,8 +80,7 @@
       "target": null,
       "title": "层内主链",
       "nodes": 45,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "macro_decode_d2",
@@ -82,8 +91,7 @@
       "target": null,
       "title": "功能模块",
       "nodes": 644,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "macro_decode_d3",
@@ -94,8 +102,7 @@
       "target": null,
       "title": "内部运算",
       "nodes": 1692,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "macro_prefill_d4",
@@ -106,8 +113,7 @@
       "target": null,
       "title": "算子细节",
       "nodes": 3817,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "macro_decode_d4",
@@ -118,8 +124,7 @@
       "target": null,
       "title": "算子细节",
       "nodes": 3658,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "micro_dense_block",
@@ -130,8 +135,7 @@
       "target": "layers.0",
       "title": "layers.0",
       "nodes": 11,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "micro_moe_block",
@@ -142,8 +146,7 @@
       "target": "layers.3",
       "title": "layers.3",
       "nodes": 11,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     },
     {
       "id": "micro_mla_attn",
@@ -154,8 +157,7 @@
       "target": "layers.0.attn",
       "title": "layers.0.attn",
       "nodes": 115,
-      "status": "ok",
-      "rebuild": true
+      "status": "ok"
     }
   ]
 }

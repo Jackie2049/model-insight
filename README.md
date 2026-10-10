@@ -24,7 +24,7 @@ python3 -m http.server 8899
 ```
 
 - [DeepSeek-V3.2 统一主页](http://127.0.0.1:8899/outputs/DeepSeek-V3.2/viz/index.html)
-- [Kimi-K3 页面导览](outputs/Kimi-K3/viz/README.md)
+- [Kimi-K3 统一主页](outputs/Kimi-K3/viz/index.html)
 
 测试覆盖、结果与限制见 [RESULTS.md](RESULTS.md)。
 

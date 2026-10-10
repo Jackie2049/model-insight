@@ -15,7 +15,7 @@
 | 6 | 抓图产物 | `capture/*.html` + `*.measured.json` + `capture_summary.json` | 每场景 ≥1 作业 ok；每类层 ≥1 micro ok |
 | 7 | 融合 IR | `fusion/final_ir.json` | 过 schema 校验；measured/logical 并列；五态使用正确 |
 | 8 | 差异报告 | `fusion/diff_report.md` | 每个 mismatch/capture_only 有处置；复核记录在案 |
-| 9 | 可视化页面 | `viz/`（注入后 HTML + README） | shim 红虚线 + 状态徽标 + 融合面板 + 场景/层级导览 |
+| 9 | 可视化页面 | `viz/`（注入后 HTML + index.html 集成面板 + views.json + README） | shim 红虚线 + 状态徽标 + 融合面板 + 场景/层级导览 |
 
 > 另：`outputs/<模型>/monitor.md` 是观测者的过程流水——非代理交付物，
 > 执行代理不得读写（见 SKILL §0），可作独立性与过程审计的旁证。
@@ -40,9 +40,10 @@
    mismatch/conflict 显式保留（含 open_questions）；无静默覆盖。
 8. **可视化质量**：HTML 打开可用（交互、缩放正常）；shim 节点红虚线 +
    等价替换提示；融合面板数字与 IR 一致；llm_only 节点在面板有
-   "尚未运行验证"提示。
-9. **全链可重跑**：按 SKILL §3 命令能从 spec 重跑 capture→fuse→render
-   且结果一致（幂等注入已处理重复运行）。
+   "尚未运行验证"提示；`viz/index.html` 集成面板可打开，场景/视图切换正常，
+   其五态与替换件计数与 `final_ir.json` 一致，链接与注入页面一一对应。
+9. **全链可重跑**：按 SKILL §3 命令能从 spec 重跑 capture→fuse→render→index
+   且结果一致（幂等注入与整体覆盖已处理重复运行）。
 
 ## 诚实性红线（违反 = 交付不合格）
 

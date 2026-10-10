@@ -17,15 +17,19 @@ audit → 逻辑 IR 校验 → spec/驱动抓图 → 融合 → HTML 注入。
      llm_only（ghost 故意不存在）/ capture_only（shim 未进逻辑 IR）
   5. final_ir 过 schema 校验
   6. render 注入成功 + 幂等（二次运行不重复注入）
+  7. render_index 集成面板：viz/index.html + views.json 生成、五态与 IR 一致、
+     链接页面在盘、views.json 与内联 VIEWS 同源、二次运行字节一致（幂等）
 """
 import argparse
 import hashlib
 import importlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+from collections import Counter
 from pathlib import Path
 
 TESTS = Path(__file__).resolve().parent          # .../agent-kit_ops-analysis/tests
@@ -118,7 +122,7 @@ def main():
     scripts = KIT / "scripts"
 
     # ---------- 1. S0 静态审计 ----------
-    step("1/6 S0 静态审计")
+    step("1/7 S0 静态审计")
     r = run([py, str(scripts / "audit_model.py"),
              "--model", str(FIX / "model_pkg"), "--out", str(RUN / "audit")])
     if not check(r.returncode == 0, "audit_model.py 退出码 0"):
@@ -133,7 +137,7 @@ def main():
     check("model.py" in audit["files"], "文件哈希清单含 model.py")
 
     # ---------- 2. 夹具逻辑 IR（模拟 2a 产物） ----------
-    step("2/6 夹具 analysis_ir 组装与校验")
+    step("2/7 夹具 analysis_ir 组装与校验")
     sha = hashlib.sha256((FIX / "model_pkg" / "model.py").read_bytes()).hexdigest()
     ir_fixture = json.loads((FIX / "analysis_ir.json").read_text(encoding="utf-8"))
     ir_fixture["model"]["source_files_hash"]["model.py"] = sha
@@ -144,7 +148,7 @@ def main():
     check(r.returncode == 0, "analysis_ir 过 ir_schema 校验")
 
     # ---------- 3. spec + driver 抓图 ----------
-    step("3/6 spec 组装 + capture_driver 三作业")
+    step("3/7 spec 组装 + capture_driver 三作业")
     spec = {
         "spec_version": "1.0",
         "model": {
@@ -206,7 +210,7 @@ def main():
           "毛坯目录无 __pycache__（只读纪律 + dont_write_bytecode 生效）")
 
     # ---------- 4. 融合 ----------
-    step("4/6 fuse 机械融合（四条状态通道）")
+    step("4/7 fuse 机械融合（四条状态通道）")
     r = run([py, str(scripts / "fuse.py"),
              "--analysis", str(analysis_path),
              "--capture-dir", str(RUN / "capture"),
@@ -231,12 +235,12 @@ def main():
     check("场景符号绑定表" in diff and "S=8" in diff, "diff_report 含符号绑定表（S=8）")
 
     # ---------- 5. 定稿校验 ----------
-    step("5/6 final_ir 过 schema 校验")
+    step("5/7 final_ir 过 schema 校验")
     r = run([py, str(scripts / "ir_schema.py"), str(RUN / "fusion" / "final_ir.json")])
     check(r.returncode == 0, "final_ir 过 ir_schema 校验")
 
     # ---------- 6. HTML 注入 ----------
-    step("6/6 render_fusion 注入（含幂等）")
+    step("6/7 render_fusion 注入（含幂等）")
     r = run([py, str(scripts / "render_fusion.py"),
              "--html", str(RUN / "capture"),
              "--ir", str(RUN / "fusion" / "final_ir.json"),
@@ -259,6 +263,51 @@ def main():
         check(h.read_text(encoding="utf-8").count(f"<!-- {mark} -->") == 1,
               f"{h.name} 幂等（注入注释锚点恰好 1 处）")
 
+    # ---------- 7. 集成面板 ----------
+    step("7/7 render_index 集成面板（含幂等）")
+    viz = RUN / "viz"
+    idx = viz / "index.html"
+    render_index_cmd = [py, str(scripts / "render_index.py"),
+                        "--capture-dir", str(RUN / "capture"),
+                        "--ir", str(RUN / "fusion" / "final_ir.json"),
+                        "--out", str(viz)]
+    r = run(render_index_cmd)
+    check(r.returncode == 0, "render_index 退出码 0")
+    check(idx.is_file(), "viz/index.html 生成")
+    check((viz / "views.json").is_file(), "viz/views.json 生成")
+    idx_text = idx.read_text(encoding="utf-8")
+    if idx.is_file():
+        for token in ("__VIEWS__", "__DETAILS__", "__SUMMARY__", "__MODEL__"):
+            check(token not in idx_text, f"无占位符残留（{token}）")
+        m = re.search(r"const VIEWS=(\[.*?\]);\nconst DETAILS=", idx_text, re.S)
+        check(m is not None, "index.html 含 VIEWS 数组")
+        if m:
+            views = json.loads(m.group(1))
+            n_jobs = len(json.loads((RUN / "capture" / "capture_summary.json")
+                                    .read_text(encoding="utf-8")).get("jobs", []))
+            check(len(views) == n_jobs, f"VIEWS 条数 == capture 作业数 {n_jobs}（实际 {len(views)}）")
+            check(all((RUN / "capture" / v["file"]).is_file() for v in views),
+                  "面板引用的页面全部在盘")
+        vj_path = viz / "views.json"
+        if vj_path.is_file() and m:
+            vj = json.loads(vj_path.read_text(encoding="utf-8"))
+            check([v["id"] for v in vj.get("views", [])] == [v["id"] for v in json.loads(m.group(1))],
+                  "views.json 与内联 VIEWS 同源一致")
+        ms = re.search(r"const SUMMARY=(\{.*?\});\nconst STATUS_META", idx_text, re.S)
+        check(ms is not None, "index.html 含 SUMMARY 统计")
+        if ms:
+            statuses = json.loads(ms.group(1))["statuses"]
+            nodes = json.loads((RUN / "fusion" / "final_ir.json")
+                               .read_text(encoding="utf-8"))["nodes"]
+            counter = Counter(n["status"] for n in nodes)
+            expect = {k: counter.get(k, 0)
+                      for k in ("verified", "mismatch", "llm_only", "capture_only", "conflict")}
+            check(statuses == expect, f"五态统计与 IR 一致（实际 {statuses}）")
+    h1 = hashlib.md5(idx.read_bytes()).hexdigest() if idx.is_file() else ""
+    r2 = run(render_index_cmd)
+    h2 = hashlib.md5(idx.read_bytes()).hexdigest() if idx.is_file() else ""
+    check(r2.returncode == 0 and h1 != "" and h1 == h2, "二次运行字节一致（幂等）")
+
     return finish()
 
 
@@ -269,7 +318,7 @@ def finish():
         for f in FAILURES:
             print(f"  - {f}")
         return 1
-    print("✓ 全部测试通过（audit / driver / fuse / schema / render 全链机制验证）")
+    print("✓ 全部测试通过（audit / driver / fuse / schema / render / index 全链机制验证）")
     return 0
 
 
