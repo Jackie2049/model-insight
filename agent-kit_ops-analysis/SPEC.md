@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 1 | 静态审计报告 | `audit/audit_report.json` | 覆盖毛坯全部 .py；缺依赖清单与调用点齐全 |
 | 2 | 逻辑分析 IR | `llm-analysis/analysis_ir.json` | 过 schema 校验；全节点 llm_only + evidence 五要素 |
-| 3 | 推导笔记 | `llm-analysis/notes.md` | 独立原始记录，证据隔离下产生（判据见验收 3；落盘后不可回改） |
+| 3 | 推导笔记 | `llm-analysis/notes.md` | 独立原始记录，时间戳早于 capture 产物（独立性审计） |
 | 4 | 抓图 spec | `capture/spec.json` | 过 driver 校验；缩水实例化已声明 |
 | 5 | shim 件 | `capture/shims/` | 每个 shim：挂树+接管双动作、数学定义、等价验证留痕 |
 | 6 | 抓图产物 | `capture/*.html` + `*.measured.json` + `capture_summary.json` | 每场景 ≥1 作业 ok；每类层 ≥1 micro ok |
@@ -25,12 +25,9 @@
 1. **全中文**：交付件内文案、代码注释、报告一律中文。
 2. **毛坯零修改**：`inputs/<模型>/` 无任何新增文件（含 `__pycache__`），
    文件哈希与任务开始时一致。
-3. **双引擎独立性可审计**：**双向零交叉引用**——`llm-analysis/` 两件产物
-   （analysis_ir.json 与 notes.md）全文不引用 capture 产物（spec/hooks/shims/
-   html/measured/capture_summary）；`capture/` 的 spec、hooks、shims 与实测 JSON
-   不引用 `llm-analysis/` 内容（可 grep 检查，证据指针写进 SELF-CHECK）。
-   两侧产物目录隔离。时序仅作旁证而非必要条件：串行形态 mtime 先后、并行形态
-   `monitor.md` 分线时间链皆可；并行执行（两线产物时间交错）为合法形态。
+3. **双引擎独立性可审计**：`notes.md` 与 `capture_summary.json` 的修改时间
+   证明逻辑分析先于抓图完成；两侧产物目录隔离，无交叉引用；观测流水
+   `monitor.md`（若存在）可作时序旁证。
 4. **覆盖清单逐项有着落**：`contract.coverage` 声明每类层型、实测代表层、
    折叠层范围；层结构事实（层数/层型分布）有源码依据；分支维度保真，
    规模缩水逐项声明（不冒充全量）。

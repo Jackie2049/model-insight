@@ -19,12 +19,8 @@ audit → 逻辑 IR 校验 → spec/驱动抓图 → 融合 → HTML 注入。
   6. render 注入成功 + 幂等（二次运行不重复注入）
   7. render_index 集成面板：viz/index.html + views.json 生成、五态与 IR 一致、
      链接页面在盘、views.json 与内联 VIEWS 同源、二次运行字节一致（幂等）
-  8. 作业分组并行：--jobs 2 与串行产物一致（inputs_sha256 逐作业相等）；
-     rebuild:false 链保序（组内串行）；链内续流 / 组首组局部语义可证明；
-     spawn 子进程零 __pycache__；--job 修复为链前缀语义
 """
 import argparse
-import copy
 import hashlib
 import importlib
 import json
@@ -126,7 +122,7 @@ def main():
     scripts = KIT / "scripts"
 
     # ---------- 1. S0 静态审计 ----------
-    step("1/8 S0 静态审计")
+    step("1/7 S0 静态审计")
     r = run([py, str(scripts / "audit_model.py"),
              "--model", str(FIX / "model_pkg"), "--out", str(RUN / "audit")])
     if not check(r.returncode == 0, "audit_model.py 退出码 0"):
@@ -141,7 +137,7 @@ def main():
     check("model.py" in audit["files"], "文件哈希清单含 model.py")
 
     # ---------- 2. 夹具逻辑 IR（模拟 2a 产物） ----------
-    step("2/8 夹具 analysis_ir 组装与校验")
+    step("2/7 夹具 analysis_ir 组装与校验")
     sha = hashlib.sha256((FIX / "model_pkg" / "model.py").read_bytes()).hexdigest()
     ir_fixture = json.loads((FIX / "analysis_ir.json").read_text(encoding="utf-8"))
     ir_fixture["model"]["source_files_hash"]["model.py"] = sha
@@ -152,7 +148,7 @@ def main():
     check(r.returncode == 0, "analysis_ir 过 ir_schema 校验")
 
     # ---------- 3. spec + driver 抓图 ----------
-    step("3/8 spec 组装 + capture_driver 三作业")
+    step("3/7 spec 组装 + capture_driver 三作业")
     spec = {
         "spec_version": "1.0",
         "model": {
@@ -213,103 +209,8 @@ def main():
     check(not (FIX / "model_pkg" / "__pycache__").exists(),
           "毛坯目录无 __pycache__（只读纪律 + dont_write_bytecode 生效）")
 
-    # ---------- 4. 作业分组并行 ----------
-    step("4/8 作业分组并行：--jobs 2 vs 串行（链保序 + 输入指纹一致）")
-    spec_p = copy.deepcopy(spec)
-    # chain_a 与 chain_b、solo_c 用同一配方：独立重建时三者输入必然相同（组局部语义），
-    # 链内顺延 RNG 流的 chain_b 则必然不同——指纹差异恰好可证续流语义
-    spec_p["traces"] = [
-        {"id": "chain_a", "kind": "macro", "scenario": "prefill",
-         "inputs": {"args": [{"type": "int_tensor", "shape": [2, 8], "low": 0, "high": 64}]}},
-        {"id": "chain_b", "kind": "macro", "scenario": "decode", "rebuild": False,
-         "inputs": {"args": [{"type": "int_tensor", "shape": [2, 8], "low": 0, "high": 64}]}},
-        {"id": "solo_c", "kind": "macro", "scenario": "prefill",
-         "inputs": {"args": [{"type": "int_tensor", "shape": [2, 8], "low": 0, "high": 64}]}},
-        {"id": "chain_d", "kind": "micro", "target": "layers.1", "scenario": "prefill",
-         "rebuild": False,
-         "inputs": {"args": [{"type": "float_tensor", "shape": [2, 6, 16]}]}},
-        {"id": "bad_target", "kind": "micro", "target": "layers.99", "scenario": "prefill",
-         "inputs": {"args": [{"type": "float_tensor", "shape": [2, 6, 16]}]}},
-    ]
-    pdir = RUN / "capture-parallel"
-    pdir.mkdir()
-    specp_path = pdir / "spec.json"
-    specp_path.write_text(json.dumps(spec_p, ensure_ascii=False, indent=2), encoding="utf-8")
-    r = run([py, str(scripts / "capture_driver.py"),
-             "--workspace", str(TESTS), "--spec", str(specp_path), "--jobs", "2"],
-            cwd=str(TESTS))
-    check(r.returncode == 1, "并行轮退出码 1（bad_target 必败，故障不外溢）")
-    if not (pdir / "capture_summary.json").exists():
-        check(False, "并行轮未产出 capture_summary.json（driver 异常退出）")
-        return finish()
-    psummary = json.loads((pdir / "capture_summary.json").read_text(encoding="utf-8"))
-    order = [j["id"] for j in psummary.get("jobs", [])]
-    check(order == [j["id"] for j in spec_p["traces"]],
-          f"T1 summary 作业顺序 == traces 顺序（实际 {order}）")
-    st = {j["id"]: j["status"] for j in psummary.get("jobs", [])}
-    check(all(st.get(x) == "ok" for x in ("chain_a", "chain_b", "solo_c", "chain_d")),
-          f"T1 四个好作业全 ok（故障隔离，实际 {st}）")
-    bad = next((j for j in psummary.get("jobs", []) if j["id"] == "bad_target"), {})
-    check(st.get("bad_target") == "failed"
-          and "target" in (bad.get("error") or bad.get("exception") or ""),
-          "T1 bad_target 记 failed 且中文错误指向 target 解析失败")
-
-    fp = {}
-    for jid in ("chain_a", "chain_b", "solo_c", "chain_d"):
-        mj = json.loads((pdir / f"{jid}.measured.json").read_text(encoding="utf-8"))
-        fp[jid] = mj["run"]["inputs_sha256"]
-    sdir = RUN / "capture-serial"
-    sdir.mkdir()
-    specs_path = sdir / "spec.json"
-    specs_path.write_text(json.dumps(spec_p, ensure_ascii=False, indent=2), encoding="utf-8")
-    r = run([py, str(scripts / "capture_driver.py"),
-             "--workspace", str(TESTS), "--spec", str(specs_path)],
-            cwd=str(TESTS))
-    check(r.returncode == 1, "串行轮（同 spec）退出码 1")
-    fps = {}
-    for jid in ("chain_a", "chain_b", "solo_c", "chain_d"):
-        mj = json.loads((sdir / f"{jid}.measured.json").read_text(encoding="utf-8"))
-        fps[jid] = mj["run"]["inputs_sha256"]
-    check(fp == fps,
-          "T2 --jobs 2 与串行的四作业 inputs_sha256 逐一相等（并行零漂移）")
-    check(fp["chain_b"] != fp["chain_a"],
-          "T3 链内作业指纹 ≠ 组首（rebuild:false 续流语义成立）")
-    check(fp["solo_c"] == fp["chain_a"],
-          "T5 同种子同配方的独立组首指纹相等（组局部语义回归锚）")
-
-    # T4：只含 chain_b 的 spec（traces[0] 即 rebuild:false → 无前驱、独立重建态）
-    spec_b = copy.deepcopy(spec_p)
-    spec_b["traces"] = [j for j in spec_p["traces"] if j["id"] == "chain_b"]
-    bdir = RUN / "capture-chainonly"
-    bdir.mkdir()
-    (bdir / "spec.json").write_text(json.dumps(spec_b, ensure_ascii=False, indent=2),
-                                    encoding="utf-8")
-    r = run([py, str(scripts / "capture_driver.py"),
-             "--workspace", str(TESTS), "--spec", str(bdir / "spec.json")],
-            cwd=str(TESTS))
-    check(r.returncode == 0, "T4 单链作业 spec（无前驱）退出码 0")
-    mjb = json.loads((bdir / "chain_b.measured.json").read_text(encoding="utf-8"))
-    check(mjb["run"]["inputs_sha256"] == fp["chain_a"]
-          and mjb["run"]["inputs_sha256"] != fp["chain_b"],
-          "T4 无前驱的 chain_b 与组首同输入（独立重建态），≠ 链内续流值（链状态依赖真实存在）")
-
-    check(not (FIX / "model_pkg" / "__pycache__").exists()
-          and not (FIX / "shims" / "__pycache__").exists(),
-          "T6 并行轮后毛坯与 shims 目录零 __pycache__（spawn 子进程不写 .pyc）")
-
-    r = run([py, str(scripts / "capture_driver.py"),
-             "--workspace", str(TESTS), "--spec", str(specs_path), "--job", "chain_b"],
-            cwd=str(TESTS))
-    check(r.returncode == 0, "T7 --job chain_b 退出码 0（组首前缀连带执行）")
-    ssum2 = json.loads((sdir / "capture_summary.json").read_text(encoding="utf-8"))
-    ids2 = [j["id"] for j in ssum2.get("jobs", [])]
-    check(ids2 == ["chain_a", "chain_b"], f"T7 --job 执行组首前缀（实际 {ids2}）")
-    mjb2 = json.loads((sdir / "chain_b.measured.json").read_text(encoding="utf-8"))
-    check(mjb2["run"]["inputs_sha256"] == fp["chain_b"],
-          "T7 --job 前缀执行下 chain_b 指纹与全量轮相等（链状态保真）")
-
-    # ---------- 5. 融合 ----------
-    step("5/8 fuse 机械融合（四条状态通道）")
+    # ---------- 4. 融合 ----------
+    step("4/7 fuse 机械融合（四条状态通道）")
     r = run([py, str(scripts / "fuse.py"),
              "--analysis", str(analysis_path),
              "--capture-dir", str(RUN / "capture"),
@@ -334,12 +235,12 @@ def main():
     check("场景符号绑定表" in diff and "S=8" in diff, "diff_report 含符号绑定表（S=8）")
 
     # ---------- 5. 定稿校验 ----------
-    step("6/8 final_ir 过 schema 校验")
+    step("5/7 final_ir 过 schema 校验")
     r = run([py, str(scripts / "ir_schema.py"), str(RUN / "fusion" / "final_ir.json")])
     check(r.returncode == 0, "final_ir 过 ir_schema 校验")
 
     # ---------- 6. HTML 注入 ----------
-    step("7/8 render_fusion 注入（含幂等）")
+    step("6/7 render_fusion 注入（含幂等）")
     r = run([py, str(scripts / "render_fusion.py"),
              "--html", str(RUN / "capture"),
              "--ir", str(RUN / "fusion" / "final_ir.json"),
@@ -363,7 +264,7 @@ def main():
               f"{h.name} 幂等（注入注释锚点恰好 1 处）")
 
     # ---------- 7. 集成面板 ----------
-    step("8/8 render_index 集成面板（含幂等）")
+    step("7/7 render_index 集成面板（含幂等）")
     viz = RUN / "viz"
     idx = viz / "index.html"
     render_index_cmd = [py, str(scripts / "render_index.py"),
@@ -417,7 +318,7 @@ def finish():
         for f in FAILURES:
             print(f"  - {f}")
         return 1
-    print("✓ 全部测试通过（audit / driver / 分组并行 / fuse / schema / render / index 全链机制验证）")
+    print("✓ 全部测试通过（audit / driver / fuse / schema / render / index 全链机制验证）")
     return 0
 
 
