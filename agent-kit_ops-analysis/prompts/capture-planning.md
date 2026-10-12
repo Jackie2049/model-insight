@@ -4,6 +4,15 @@
 > 让模型在本机 CPU 上真实前向、TorchVista 抓图。driver 本体零模型知识，
 > 一切模型判断都由你写进 spec。
 
+## 0. 禁读边界（与 S2a 逻辑分析对称）
+
+- **禁读**：`outputs/<模型>/` 下的 `llm-analysis/`、`fusion/`、`viz/`——
+  **即便它们已在盘上也不读、不等、不参考**（并行形态下逻辑线代理正同步产生
+  逻辑分析产物；看一眼就污染双引擎独立性）；
+- 可读：模型毛坯源码（`inputs/<模型>/`，只读）+ S0 审计报告
+  （`outputs/<模型>/audit/audit_report.json`）；
+- 只写：`outputs/<模型>/capture/`（仅此一目录）。
+
 ## 1. 从审计报告出发
 
 `outputs/<模型>/audit/audit_report.json` 的用法：
@@ -61,14 +70,21 @@
 
 ```
 <工作区>/.venv/bin/python agent-kit_ops-analysis/scripts/capture_driver.py \
-    --workspace <工作区> --spec outputs/<模型>/capture/spec.json
+    --workspace <工作区> --spec outputs/<模型>/capture/spec.json [--jobs N]
 ```
 
 - 看每个作业的中文结果行：`ok`（节点数/失败节点数）或失败原因；
+- **并行用法**（`--jobs N`）：把作业按 rebuild 链分组后每组一个进程并行执行，
+  `rebuild: false` 的串联作业保持在同组内串行、拿得到前驱的模型实例与运行态；
+  **产物与串行逐作业一致**（作业输入指纹 `measured.run.inputs_sha256` 相等，
+  有测试断言背书）——随机输入由每次重建时的种子重置决定，与作业执行顺序无关；
+  分布式 spec（`init_distributed: true`）并行时端口按组自动错开。建议在作业数
+  多且单作业前向分钟级时使用（如 `--jobs 4`）；
 - **断图判读**（作业 failed 时）：先开对应 `<作业id>.html` 看部分图断在哪、
   `<作业id>.measured.json` 的 `run.exception.traceback_tail` 定位——
   常见归因：缺 shim（audit 的 external_calls 漏判断）/ 构造参数不对 /
-  输入形状不对 / 需要预置状态（改 hooks）。修 spec 或 shim 后重跑；
+  输入形状不对 / 需要预置状态（改 hooks）。修 spec 或 shim 后重跑
+  （并行重跑同样安全，失败只影响所在组）；
 - 全部作业 `ok`（或失败节点数=0 且图中已含你需要的链路）才算 S2b 完成；
   `capture_summary.json` 留作记录。
 

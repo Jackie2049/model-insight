@@ -8,7 +8,8 @@
 
 - 可读：模型毛坯源码（`inputs/<模型>/`，只读）+ S0 审计报告
   （`outputs/<模型>/audit/audit_report.json`）
-- 禁读：`capture/`、`fusion/`、`viz/`（本阶段它们尚不存在；即便存在也不读）
+- 禁读：`capture/`、`fusion/`、`viz/`（并行形态下它们可能与本阶段并行产生；
+  无论存在与否均不读、不等、不参考）
 - 产出：`outputs/<模型>/llm-analysis/analysis_ir.json`（见 §6）
 
 ## 2. 覆盖纪律：层模板枚举法
