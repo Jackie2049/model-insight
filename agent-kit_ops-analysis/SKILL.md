@@ -121,7 +121,7 @@ capture_only 补分析或说明、缩水声明合并、conflict 诚实保留。
 | 脚本 | 用途 |
 |---|---|
 | `scripts/audit_model.py --model <目录> --out <目录>` | S0 静态审计（AST，不执行模型代码） |
-| `scripts/capture_driver.py --workspace <根> --spec <spec.json>` | 抓图驱动（spec 契约见其文件头） |
+| `scripts/capture_driver.py --workspace <根> --spec <spec.json> [--jobs N]` | 抓图驱动（spec 契约见其文件头；并行用法见 capture-planning §5） |
 | `scripts/fuse.py --analysis <ir> --capture-dir <目录> --out <目录>` | 机械融合 |
 | `scripts/ir_schema.py <ir.json>` / `--example` / `--template` | IR 校验 / 样例 / 模板 |
 | `scripts/render_fusion.py --html <文件或目录> --ir <ir> [--spec <spec>]` | HTML 注入 |

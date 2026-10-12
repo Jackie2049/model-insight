@@ -20,6 +20,9 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+# 不写字节码：kit 目录不沉积 __pycache__
+sys.dont_write_bytecode = True
+
 # ---------------------------------------------------------------- 报错与校验
 
 

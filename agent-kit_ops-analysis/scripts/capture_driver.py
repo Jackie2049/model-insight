@@ -55,14 +55,30 @@ hooks.py 标准钩子（全部可选，签名固定）：
 
 产物（写在 spec.json 所在目录）：
   <job_id>.html            TorchVista 交互图（失败作业也渲染部分图）
-  <job_id>.measured.json   实测记录（容器数据 + 逐节点派生表 + 运行元信息）
+  <job_id>.measured.json   实测记录（容器数据 + 逐节点派生表 + 运行元信息；
+                           run.inputs_sha256 = 作业输入的确定性摘要，审计用）
   capture_summary.json     全部作业的状态汇总
 
 用法（必须用工作区 .venv 的 python，见 SKILL.md 环境契约）：
   <工作区>/.venv/bin/python agent-kit_ops-analysis/scripts/capture_driver.py \
-      --workspace <工作区根> --spec outputs/<模型>/capture/spec.json [--job 作业id]
+      --workspace <工作区根> --spec outputs/<模型>/capture/spec.json [--jobs N] [--job 作业id]
 
 退出码：0=全部作业成功；1=存在失败作业（部分图与实测 JSON 仍会落盘，供断图判读）。
+
+作业分组与并行（--jobs N，默认 1=串行，行为与历史版本一致）：
+  组的划分：rebuild:false 的作业与其 traces 前驱同组（复用前驱作业留下的模型实例
+    与运行态，如 KV cache 预填）；其余作业各自成组。串行=按 traces 顺序跑完所有组；
+    并行=每组一个独立进程（spawn），组内按序、组间并行。
+  随机性（并行一致性依据）：build_model 每次以 spec.model.seed 重置 RNG，组首作业
+    的输入只依赖 spec+配方（与此前执行过哪些作业无关）；rebuild:false 链内输入顺延
+    组内 RNG 流。因此 --jobs N 与串行的产物逐作业一致（见 measured.run.inputs_sha256，
+    tests/run_tests.py 有断言背书）。
+  分布式：spec 声明 init_distributed=true 时，并行模式按组号自动错开 MASTER_PORT
+    （也可用环境变量 OPS_KIT_MASTER_PORT 显式指定）。
+  失败：单组异常只影响该组（记 failed，退出码 1）；worker 进程崩溃时已完成组保留、
+    未完成组记 failed。
+  隔离差异（诚实披露）：并行模式下每组在干净进程内执行，跨组的 sys.modules/全局
+    状态残留严格少于串行模式——对无状态 shim 的产物等价。
 
 ⚠ 版本耦合警示：本驱动 import torchvista 的内部 API（process_graph / plot_graph /
   build_immediate_ancestor_map / ExportFormat 等，见下方 import 区）。torchvista
@@ -147,6 +163,23 @@ def load_spec(spec_path, workspace):
     return spec
 
 
+def partition_groups(traces):
+    """按 rebuild 链依赖把 traces 切成执行组（纯函数，串行/并行共用）。
+
+    rebuild:false 的作业与其 traces 前驱同组（复用前驱的模型实例与运行态）；
+    其余作业各自成组。返回组列表，组间顺序 = traces 出现顺序。
+    traces[0] 为 rebuild:false 时自成组（无前驱可复用，触发重建——与串行的
+    model=None 起步语义一致）。
+    """
+    groups = []
+    for job in traces:
+        if groups and not job.get("rebuild", True):
+            groups[-1].append(job)
+        else:
+            groups.append([job])
+    return groups
+
+
 # ---------------------------------------------------------------- 模块加载
 def import_file_as_module(path, module_name):
     """按文件路径把 .py 加载成模块（shim 文件 / hooks 文件用）。"""
@@ -158,6 +191,29 @@ def import_file_as_module(path, module_name):
     sys.modules[module_name] = mod          # 注册后才能支持模块内相对引用
     spec.loader.exec_module(mod)
     return mod
+
+
+# ---------------------------------------------------------------- 驱动状态
+def assemble_state(spec, ws, spec_path):
+    """组装驱动状态：模型目录解析 + hooks 加载（main 与并行 worker 共用）。
+
+    出错统一抛 SpecError（调用方决定打印退出还是记组失败）。
+    """
+    model_dir = (ws / spec["model"]["dir"]).resolve()
+    if not model_dir.exists():
+        raise SpecError(f"spec.model.dir 不存在：{spec['model']['dir']}")
+    hooks = None
+    if spec.get("hooks"):
+        try:
+            hooks = import_file_as_module(ws / spec["hooks"], "_ops_kit_hooks")
+        except Exception as e:
+            raise SpecError(f"hooks.py 加载失败：{type(e).__name__}: {e}")
+    return {
+        "spec": spec, "workspace": ws, "model_dir": model_dir,
+        "out_dir": spec_path.parent, "hooks": hooks, "entry_module": None,
+        "shim_modules": {},
+        "ctx_for_build": DriverContext(ws, model_dir, spec),
+    }
 
 
 # ---------------------------------------------------------------- 模型构建
@@ -185,7 +241,13 @@ def build_model(state):
     # 3) 分布式：必须在导入模型模块之前完成（模块导入期可能读取全局状态）
     if m.get("init_distributed") and not torch.distributed.is_initialized():
         os.environ.setdefault("MASTER_ADDR", "127.0.0.1")
-        os.environ.setdefault("MASTER_PORT", str(random.randint(20000, 45000)))
+        # 随机消耗保留（RNG 流与串行一致）；并行模式经环境变量按组错开端口，
+        # 否则 seed 固定后所有 worker 算出同一端口、并发初始化会互撞
+        port = random.randint(20000, 45000)
+        override = os.environ.get("OPS_KIT_MASTER_PORT")
+        if override:
+            port = int(override)
+        os.environ.setdefault("MASTER_PORT", str(port))
         os.environ.setdefault("RANK", "0")
         os.environ.setdefault("WORLD_SIZE", "1")
         torch.distributed.init_process_group(backend="gloo", rank=0, world_size=1)
@@ -278,6 +340,39 @@ def build_inputs(job, model, state):
             raise SpecError(f"inputs.args[{i}] 的 type 无法识别：{t!r}"
                             f"（float_tensor / int_tensor / const，或改用 hook）")
     return tuple(out)
+
+
+def _inputs_fingerprint(inputs):
+    """作业输入的确定性摘要（写进 measured.run.inputs_sha256，审计字段）。
+
+    用途：并行与串行产物一致性、rebuild:false 链内续流语义的可证明审计、
+    跨轮次比对输入是否漂移。同 spec 同配方 → 同指纹。
+    """
+    import hashlib
+    import torch
+
+    def digest(v):
+        if isinstance(v, torch.Tensor):
+            t = v.detach().contiguous().cpu().flatten()
+            if t.numel() == 0:
+                return "tensor:empty"
+            try:
+                data = t.numpy().tobytes()          # numpy 原生支持的 dtype
+            except TypeError:
+                # bf16/fp8 等 numpy 不支持的位宽：按字节宽转整型再取字节
+                m = {1: torch.uint8, 2: torch.int16, 4: torch.int32,
+                     8: torch.int64, 16: torch.int64}
+                data = t.view(m[t.element_size()]).numpy().tobytes()
+            return "tensor:" + hashlib.sha256(data).hexdigest()
+        if isinstance(v, dict):
+            inner = ";".join(f"{k}={digest(v[k])}" for k in sorted(v))
+            return "dict:" + hashlib.sha256(inner.encode()).hexdigest()
+        if isinstance(v, (tuple, list)):
+            inner = ",".join(digest(x) for x in v)
+            return "seq:" + hashlib.sha256(inner.encode()).hexdigest()
+        return "raw:" + hashlib.sha256(f"{type(v).__name__}:{v!r}".encode()).hexdigest()
+
+    return digest(tuple(inputs) if not isinstance(inputs, dict) else inputs)
 
 
 # ---------------------------------------------------------------- 派生表（融合的直接输入）
@@ -383,6 +478,7 @@ def run_job(job, model, state):
     height = job.get("height", 800)
 
     exception = None
+    tb_tail = None
     t0 = time.time()
     try:
         process_graph(
@@ -398,6 +494,8 @@ def run_job(job, model, state):
         # 断图语义：process_graph 已尽量恢复环境，容器里保留"成功节点 + 失败节点"
         # ——部分图不是废品，是定位断点的依据（判读规则见 SKILL.md）
         exception = e
+        # 栈尾必须在 except 上下文内取（format_exc 仅在处理异常时返回真实栈）
+        tb_tail = traceback.format_exc().splitlines()[-30:]
     elapsed = round(time.time() - t0, 2)
 
     # 实测 JSON：容器原样（可序列化部分）+ 派生表 + 运行元信息
@@ -408,11 +506,12 @@ def run_job(job, model, state):
                             "attr_names": attr_names}},
         "run": {"status": "failed" if exception else "ok",
                 "elapsed_sec": elapsed,
+                "inputs_sha256": _inputs_fingerprint(inputs),
                 "torch": torch.__version__,
                 "exception": None if exception is None else {
                     "type": type(exception).__name__,
                     "message": str(exception)[:2000],
-                    "traceback_tail": traceback.format_exc().splitlines()[-30:]},
+                    "traceback_tail": tb_tail},
                 "spec_model_name": spec["model"].get("name", "")},
         "graph": {
             "adj_list": adj_list,
@@ -462,12 +561,87 @@ def run_job(job, model, state):
             "html": html_path.name, "measured": f"{job_id}.measured.json"}
 
 
+# ---------------------------------------------------------------- 并行 worker
+def execute_group(task):
+    """并行模式的进程入口：在独立进程内执行一个作业组。
+
+    task = {"spec_path": str, "workspace": str, "jobs": [作业字典…], "master_port": int}
+    返回该组所有作业的状态记录列表（顺序 = 组内 traces 顺序）。
+
+    进程级纪律必须先于任何 import：spawn 子进程不会继承父进程的
+    sys.dont_write_bytecode，不设会导致在毛坯/kit 目录写下 __pycache__。
+    """
+    sys.dont_write_bytecode = True
+    import torch
+    torch.set_num_threads(1)        # 并行靠进程数，worker 限单线程避免 CPU 争用
+    if task.get("master_port"):
+        os.environ["OPS_KIT_MASTER_PORT"] = str(task["master_port"])
+
+    ws = Path(task["workspace"]).resolve()
+    spec_path = Path(task["spec_path"]).resolve()
+    spec = load_spec(spec_path, ws)
+    # 全量校验后只保留本组作业（产物写同一目录，summary 由主进程聚合）
+    wanted = {j["id"] for j in task["jobs"]}
+    spec = dict(spec, traces=[j for j in spec["traces"] if j["id"] in wanted])
+    state = assemble_state(spec, ws, spec_path)
+
+    results, model = [], None
+    for job in spec["traces"]:
+        # 与串行循环同构：组首必重建（组首作业必为 rebuild:true 或无前驱），
+        # 链内作业按 rebuild 标志复用实例
+        if model is None or job.get("rebuild", True):
+            if model is not None:
+                del model
+                gc.collect()
+            model = build_model(state)
+        results.append(run_job(job, model, state))
+    return results
+
+
+def _run_parallel(spec, ws, spec_path, traces, n_jobs):
+    """并行执行：按组派发到进程池，返回按 traces 顺序展平的作业记录列表。"""
+    import multiprocessing as mp
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    from concurrent.futures.process import BrokenProcessPool
+
+    # spawn 子进程会 re-import 本模块：环境变量兜底字节码纪律
+    # （execute_group 内的 sys.dont_write_bytecode 是第二重保险）
+    os.environ.setdefault("PYTHONDONTWRITEBYTECODE", "1")
+    groups = partition_groups(traces)
+    # 端口段：每次运行随机基址、按组号错开（build_model 读取 OPS_KIT_MASTER_PORT 覆盖）；
+    # 随机基址避免同机两份 driver 并发互撞
+    base = random.randint(20000, 45000 - len(groups))
+    tasks = [{"spec_path": str(spec_path), "workspace": str(ws),
+              "jobs": g, "master_port": base + i} for i, g in enumerate(groups)]
+    print(f"◆ 并行模式：{len(groups)} 个作业组，至多 {n_jobs} 个进程"
+          f"（rebuild:false 链保持在同组内串行）")
+    slots = [None] * len(groups)
+    with ProcessPoolExecutor(max_workers=min(n_jobs, len(groups)),
+                             mp_context=mp.get_context("spawn")) as pool:
+        futures = {pool.submit(execute_group, t): i for i, t in enumerate(tasks)}
+        for fut in as_completed(futures):
+            i = futures[fut]
+            try:
+                slots[i] = fut.result()
+            except Exception as e:
+                # 组内未捕获异常 / worker 崩溃：只影响该组（已完成组照常入账）
+                reason = ("worker 进程崩溃（BrokenProcessPool）"
+                          if isinstance(e, BrokenProcessPool)
+                          else f"作业组执行异常：{type(e).__name__}: {e}")
+                slots[i] = [{"id": j["id"], "status": "failed", "error": reason}
+                            for j in groups[i]]
+    return [r for slot in slots for r in slot]
+
+
 # ---------------------------------------------------------------- 主流程
 def main(argv=None):
     ap = argparse.ArgumentParser(description="S2b 通用抓图驱动（零模型知识）")
     ap.add_argument("--workspace", required=True, help="工作区根目录（spec 内相对路径的基准）")
     ap.add_argument("--spec", required=True, help="spec.json 路径（产物写在其所在目录）")
-    ap.add_argument("--job", default=None, help="只跑指定 id 的作业（调试用）")
+    ap.add_argument("--jobs", type=int, default=1,
+                    help="并行作业组数（默认 1=串行；>1 时每组一个进程，产物与串行一致）")
+    ap.add_argument("--job", default=None,
+                    help="只跑到指定 id 为止（含其所在 rebuild 链的组首前缀——链内作业需要前驱状态）")
     args = ap.parse_args(argv)
 
     # 不写字节码：毛坯目录只读，绝不能留下 __pycache__
@@ -480,44 +654,44 @@ def main(argv=None):
     except SpecError as e:
         print(f"✗ spec.json 不符合契约：{e}")
         return 1
-    out_dir = spec_path.parent
-    model_dir = (ws / spec["model"]["dir"]).resolve()
-    if not model_dir.exists():
-        print(f"✗ spec.model.dir 不存在：{spec['model']['dir']}")
-        return 1
 
-    # hooks.py（可选）
-    hooks = None
-    if spec.get("hooks"):
-        try:
-            hooks = import_file_as_module(ws / spec["hooks"], "_ops_kit_hooks")
-        except Exception as e:
-            print(f"✗ hooks.py 加载失败：{type(e).__name__}: {e}")
+    traces = spec["traces"]
+    if args.job is not None:
+        # 链前缀语义：从作业所在组的组首跑到该作业（rebuild:false 的链内作业
+        # 依赖前驱作业留下的模型实例，单独执行拿不到完整状态）
+        group = next((g for g in partition_groups(traces)
+                      if any(j["id"] == args.job for j in g)), None)
+        if group is None:
+            print(f"✗ 没有匹配的作业（--job {args.job}）")
             return 1
+        prefix = []
+        for j in group:
+            prefix.append(j)
+            if j["id"] == args.job:
+                break
+        traces = prefix
 
-    state = {
-        "spec": spec, "workspace": ws, "model_dir": model_dir,
-        "out_dir": out_dir, "hooks": hooks, "entry_module": None,
-        "shim_modules": {},
-        "ctx_for_build": DriverContext(ws, model_dir, spec),
-    }
-
-    traces = [j for j in spec["traces"] if args.job in (None, j["id"])]
-    if not traces:
-        print(f"✗ 没有匹配的作业（--job {args.job}）")
+    try:
+        state = assemble_state(spec, ws, spec_path)
+    except SpecError as e:
+        print(f"✗ {e}")
         return 1
+    out_dir = state["out_dir"]
 
     print(f"◆ 抓图驱动启动：模型 {spec['model'].get('name', '')}，"
           f"{len(traces)} 个作业，产物目录 {out_dir}")
-    results, model = [], None
-    for job in traces:
-        # rebuild（默认 true）：每个作业前重建干净模型（种子固定 → 权重一致）
-        if model is None or job.get("rebuild", True):
-            if model is not None:
-                del model
-                gc.collect()
-            model = build_model(state)
-        results.append(run_job(job, model, state))
+    if args.jobs > 1:
+        results = _run_parallel(spec, ws, spec_path, traces, args.jobs)
+    else:
+        results, model = [], None
+        for job in traces:
+            # rebuild（默认 true）：每个作业前重建干净模型（种子固定 → 权重一致）
+            if model is None or job.get("rebuild", True):
+                if model is not None:
+                    del model
+                    gc.collect()
+                model = build_model(state)
+            results.append(run_job(job, model, state))
 
     # 汇总
     summary = {"spec": str(spec_path), "jobs": results,

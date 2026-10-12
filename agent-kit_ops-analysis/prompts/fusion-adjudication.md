@@ -9,6 +9,10 @@
 
 对 diff_report 里每个 mismatch 节点：
 
+0. **先查两侧口径**（shape 类 mismatch 的第一动作）：确认逻辑侧与实测侧
+   记录的是同一口径的 shape——kit 权威口径是节点 forward 的**主输入张量**
+   （实测侧 `measured.blocks[].shape` 即此口径），不是算子产出。逻辑侧把
+   产出张量记成节点 shape 是系统性踩坑，先统一口径再谈对错；
 1. **逻辑侧证据真的支持吗？** 回到 evidence 的 file:lines 重读源码——
    逻辑推导常见的错：维度映射搞反、忘了 view/transpose、把权重形状当输入形状、
    dtype 想当然。若逻辑侧错了：修正 `logical`，**必须同步修正/补充 evidence**，

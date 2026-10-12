@@ -41,6 +41,9 @@
   `__init__` 里的形状推导代码），每个维度符号都要在 `dim_meaning` 里给出含义。
 - **逐模块传递**：沿 forward 数据流推导主输入张量形状，每个节点记录
   `logical.shape`（整数或维度符号）与 `logical.dtype`。
+- **shape 口径 = 主输入**：`logical.shape` 记录该节点 forward 的**主输入
+  张量**形状（与实测侧 `measured.blocks[].shape` 同口径），不是算子产出
+  张量的形状——口径记反了，融合阶段会整批假 mismatch。
 - **dtype 依据**：权重 dtype（构造/转换代码）、源码里的字面量（`.to(…)`、
   `torch.xxx_tensor`）、算子语义（哪些算子保持/改变 dtype）。
 - **分支场景参数化**：prefill / decode 等场景下形状不同的维度用符号
