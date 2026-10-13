@@ -15,16 +15,19 @@
 
 ## 示例
 
-仓库包含 [DeepSeek-V3.2](outputs/DeepSeek-V3.2/) 和 [Kimi-K3](outputs/Kimi-K3/) 的分析产物。启动本地服务即可浏览已有页面：
+仓库包含 [DeepSeek-V3.2](outputs/DeepSeek-V3.2/) 和 [Kimi-K3](outputs/Kimi-K3/) 的分析产物，已部署为在线页面：
+
+- [DeepSeek-V3.2 统一主页](https://jackie2049.github.io/model-insight/outputs/DeepSeek-V3.2/viz/index.html)
+- [Kimi-K3 统一主页](https://jackie2049.github.io/model-insight/outputs/Kimi-K3/viz/index.html)
+
+也可以本地浏览：
 
 ```bash
 git clone https://github.com/Jackie2049/model-insight.git
 cd model-insight
 python3 -m http.server 8899
+# 打开 http://127.0.0.1:8899/outputs/DeepSeek-V3.2/viz/index.html
 ```
-
-- [DeepSeek-V3.2 统一主页](http://127.0.0.1:8899/outputs/DeepSeek-V3.2/viz/index.html)
-- [Kimi-K3 统一主页](outputs/Kimi-K3/viz/index.html)
 
 测试覆盖、结果与限制见 [RESULTS.md](RESULTS.md)。
 
@@ -53,7 +56,7 @@ python3 -m venv .venv
 |---|---|
 | `fusion/final_ir.json` | 逻辑与捕获 shape/dtype、源码依据、场景及分析状态 |
 | `fusion/diff_report.md` | 差异与复核记录 |
-| `viz/` | 分层交互图 |
+| `viz/` | 分层交互图 + index.html 集成面板 |
 | `llm-analysis/`、`capture/` | 两路独立分析的记录 |
 
 以上路径均位于 `outputs/<模型名>/`。JSON 字段由 [schema 校验器](agent-kit_ops-analysis/scripts/ir_schema.py) 约束。
