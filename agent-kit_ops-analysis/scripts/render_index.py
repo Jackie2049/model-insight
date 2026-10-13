@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """render_index.py — 生成 viz/index.html 集成面板（模型无关）。
 
-面板 UI 为统一暗色主题（橙色品牌/眉标 + 蓝色交互选中态），由本生成器
-整体产出、随重跑重算，禁手改。数据全部实时读取、零硬编码：
+以 DeepSeek-V3.2 手搓面板为模板：CSS 与交互 JS 全部保留并改造为模型无关，
+数据全部实时读取、零硬编码：
   - capture/capture_summary.json   作业清单（id/status/nodes/html）
   - capture/<id>.measured.json     每作业元数据（kind/scenario/target）
   - fusion/final_ir.json           模型名、五态统计、替换件、缩水声明
@@ -34,59 +34,57 @@ def fail(msg: str) -> None:
 # ---------------------------------------------------------------- 模板（源自手搓面板，JS 交互全保留）
 
 CSS = (
-    # 暗色主题（定版）：以 Codex demo 预览图为视觉基准——深色框架、
-    # 橙色品牌/眉标、蓝色交互选中态；TorchVista 图页保持原生亮色，嵌入深色框架
     ":root{font-family:Inter,-apple-system,BlinkMacSystemFont,\"PingFang SC\",\"Microsoft Yahei\",sans-serif;"
-    "color:#e8eaf0;background:#14161b;--panel:#191c22;--panel2:#20242c;--line:#2a2f3a;--muted:#8b93a3;"
-    "--accent:#e08a5c;--blue:#5b8cff;--blue-soft:rgba(91,140,255,.13);--good:#4cc38a;--warn:#e0a35c}\n"
+    "color:#292722;background:#f8f7f4;--panel:#f2f0eb;--panel2:#ebe8e1;--line:#e2ded6;--muted:#77736c;"
+    "--accent:#c56a45;--accent-soft:#f4e7df;--good:#39745c;--warn:#a66a26}\n"
     "*{box-sizing:border-box}body{margin:0;min-height:100vh}button,a{font:inherit}button{cursor:pointer}a{color:inherit}"
     ".app{display:grid;grid-template-columns:292px minmax(0,1fr);height:100vh;min-height:580px}"
     ".rail{background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:22px 17px}"
-    ".brand{display:flex;align-items:center;gap:9px;font-size:11px;letter-spacing:.09em;font-weight:750;color:#9aa3b5;text-transform:uppercase}"
-    ".mark{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:var(--accent);color:#fff;font-size:14px;letter-spacing:0}"
-    ".rail h1{font-size:22px;line-height:1.2;letter-spacing:-.035em;margin:22px 0 8px;font-weight:650;color:#f2f4f8}"
+    ".brand{display:flex;align-items:center;gap:9px;font-size:11px;letter-spacing:.09em;font-weight:750;color:#716d66;text-transform:uppercase}"
+    ".mark{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#d97850;color:#fff;font-size:14px;letter-spacing:0}"
+    ".rail h1{font-size:22px;line-height:1.2;letter-spacing:-.035em;margin:22px 0 8px;font-weight:650}"
     ".subtle{color:var(--muted);font-size:12px;line-height:1.55}"
     ".section{margin-top:27px}"
-    ".section-head{display:flex;align-items:center;justify-content:space-between;color:#7a8294;font-size:10px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;margin-bottom:9px}"
+    ".section-head{display:flex;align-items:center;justify-content:space-between;color:#77736c;font-size:10px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;margin-bottom:9px}"
     ".tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px}"
-    ".tab,.item{border:1px solid transparent;background:transparent;color:#c8cdd8;border-radius:9px}"
+    ".tab,.item{border:1px solid transparent;background:transparent;color:#383630;border-radius:9px}"
     ".tab{padding:10px 7px;font-size:13px;font-weight:600}"
-    ".tab:hover,.item:hover{background:#232833}"
-    ".tab.active,.item.active{border-color:rgba(91,140,255,.45);background:var(--blue-soft);color:#a9c2ff;box-shadow:none}"
-    ".tab small{display:block;font-size:10px;color:#6d7686;font-weight:450;margin-top:3px}"
+    ".tab:hover,.item:hover{background:#eae7e0}"
+    ".tab.active,.item.active{border-color:#e6c6b6;background:#f5e8e1;color:#7d4029;box-shadow:none}"
+    ".tab small{display:block;font-size:10px;color:#8f786b;font-weight:450;margin-top:3px}"
     ".items{display:grid;gap:3px}"
     ".item{text-align:left;padding:9px 10px;display:flex;align-items:center;gap:10px;width:100%}"
-    ".n{flex:0 0 27px;height:27px;border-radius:8px;display:grid;place-items:center;background:#262b34;color:#a8b0c0;font-size:12px;font-weight:650}"
-    ".item.active .n{background:rgba(91,140,255,.28);color:#cddcff}"
+    ".n{flex:0 0 27px;height:27px;border-radius:8px;display:grid;place-items:center;background:#e8e5de;color:#706b62;font-size:12px;font-weight:650}"
+    ".item.active .n{background:#e6c7b7;color:#87462e}"
     ".item strong{display:block;font-size:12px;font-weight:600}"
     ".item small{display:block;color:var(--muted);font-size:10px;margin-top:3px;line-height:1.25}"
-    ".count{margin-left:auto;color:#6d7686;font-size:10px;white-space:nowrap}"
-    ".empty{color:var(--muted);font-size:12px;border:1px dashed #3a404c;padding:12px;border-radius:9px}"
+    ".count{margin-left:auto;color:#8a857c;font-size:10px;white-space:nowrap}"
+    ".empty{color:var(--muted);font-size:12px;border:1px dashed #d7d1c7;padding:12px;border-radius:9px}"
     ".stats{display:grid;gap:5px}"
-    ".stat{display:flex;align-items:center;gap:7px;font-size:11px;color:#b6bdc9}"
+    ".stat{display:flex;align-items:center;gap:7px;font-size:11px;color:#4c4842}"
     ".stat b{font-weight:650}"
     ".dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}"
     ".note{margin-top:9px;font-size:10px;line-height:1.5;color:var(--muted);cursor:help}"
     ".main{min-width:0;display:flex;flex-direction:column}"
-    ".top{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:17px 23px;border-bottom:1px solid var(--line);min-height:78px;background:#1b1f27}"
-    ".eyebrow{color:var(--accent);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}"
+    ".top{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:17px 23px;border-bottom:1px solid var(--line);min-height:78px;background:#fbfaf8}"
+    ".eyebrow{color:#a85a3b;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}"
     ".heading{display:flex;align-items:center;gap:10px;margin-top:5px;flex-wrap:wrap}"
-    ".heading h2{font-size:17px;margin:0;font-weight:620;color:#f2f4f8}"
-    ".pill{border:1px solid var(--line);color:var(--muted);border-radius:50px;padding:3px 8px;font-size:10px}"
+    ".heading h2{font-size:17px;margin:0;font-weight:620}"
+    ".pill{border:1px solid #e2ded6;color:#77736c;border-radius:50px;padding:3px 8px;font-size:10px}"
     ".topactions{display:flex;gap:7px;flex-shrink:0}"
-    ".action{background:var(--blue);color:white;border:1px solid var(--blue);border-radius:8px;text-decoration:none;padding:8px 11px;font-size:11px}"
-    ".action:hover{background:#6f9aff}"
-    ".action.secondary{background:transparent;color:#b6bdc9;border-color:#343a46}"
-    ".action.secondary:hover{background:#232833}"
-    ".context{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:10px 23px;border-bottom:1px solid var(--line);color:#9aa3b5;font-size:11px;min-height:45px;background:#1b1f27}"
+    ".action{background:#c56a45;color:white;border:1px solid #c56a45;border-radius:8px;text-decoration:none;padding:8px 11px;font-size:11px}"
+    ".action:hover{background:#ad5938}"
+    ".action.secondary{background:transparent;color:#57534d;border-color:#ddd8cf}"
+    ".action.secondary:hover{background:#f0eee9}"
+    ".context{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:10px 23px;border-bottom:1px solid var(--line);color:#6e6961;font-size:11px;min-height:45px;background:#fbfaf8}"
     ".context .warning{color:var(--warn)}"
     ".context .good{color:var(--good)}"
-    ".framewrap{position:relative;flex:1;min-height:0;background:#0f1115}"
+    ".framewrap{position:relative;flex:1;min-height:0;background:#f0f1f2}"
     ".framewrap iframe{width:100%;height:100%;border:0;background:white}"
-    ".loading{position:absolute;z-index:1;inset:0;display:grid;place-items:center;background:#0f1115;color:#7a8294;font-size:13px}"
+    ".loading{position:absolute;z-index:1;inset:0;display:grid;place-items:center;background:#f0f1f2;color:#686d72;font-size:13px}"
     ".loading[hidden]{display:none}"
-    ".foot{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 23px;border-top:1px solid var(--line);font-size:10px;color:#6d7686;background:#1b1f27}"
-    ".foot a{color:var(--accent);text-decoration:none}"
+    ".foot{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 23px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);background:#fbfaf8}"
+    ".foot a{color:#9e573b;text-decoration:none}"
     ".focused .rail{display:none}.focused .app{grid-template-columns:1fr}"
     "@media(max-width:850px){.app{grid-template-columns:1fr;height:auto;min-height:100vh}"
     ".rail{border-right:0;border-bottom:1px solid var(--line);max-height:290px;padding:14px}"
@@ -111,7 +109,6 @@ __CSS__
 <aside class="rail" aria-label="视图导航">
   <div class="brand"><span class="mark">◈</span> Model-Insight</div>
   <h1>__MODEL__<br>算子流水</h1>
-  <div class="subtle">从模型骨架到算子细节，在同一入口查看不同场景与观察尺度。</div>
   <section class="section"><div class="section-head">01 · 运行场景</div><div class="tabs" id="scenarios"></div></section>
   <section class="section"><div class="section-head">02 · __DEPTH_SECTION__ <span id="depthCount"></span></div><div class="items" id="depths"></div></section>
   <section class="section"><div class="section-head">03 · 专项模块实验</div><div class="items" id="modules"></div></section>
@@ -127,7 +124,7 @@ __CSS__
 const VIEWS=__VIEWS__;
 const DETAILS=__DETAILS__;
 const SUMMARY=__SUMMARY__;
-const STATUS_META=[["verified","已验证","#4cc38a"],["mismatch","不一致","#e0a35c"],["llm_only","仅推导","#8b93a3"],["capture_only","仅捕获","#8b93a3"],["conflict","冲突","#e06c5c"]];
+const STATUS_META=[["verified","已验证","#39745c"],["mismatch","不一致","#a66a26"],["llm_only","仅推导","#77736c"],["capture_only","仅捕获","#77736c"],["conflict","冲突","#b3452f"]];
 const $=id=>document.getElementById(id);
 const byId=Object.fromEntries(VIEWS.map(v=>[v.id,v]));
 const SCENARIOS=[...new Set(VIEWS.map(v=>v.scenario))].map(s=>({key:s,label:s.charAt(0).toUpperCase()+s.slice(1).replace(/_/g,' '),count:VIEWS.filter(v=>v.scenario===s).length}));

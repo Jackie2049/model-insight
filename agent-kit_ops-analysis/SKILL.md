@@ -107,7 +107,7 @@ capture_only 补分析或说明、缩水声明合并、conflict 诚实保留。
 ```
 
 把注入后的 HTML 复制到 `viz/`（保留 capture/ 原件）。`render_index.py` 随后
-生成 `viz/index.html` 集成面板与 `viz/views.json`（统一暗色主题由生成器保证）：
+生成 `viz/index.html` 集成面板与 `viz/views.json`（亮色 Claude 风格主题由生成器保证）：
 数据实时读取 capture_summary 与 final_ir，五态统计与替换件数禁手改这两个文件
 （重跑即重算）。写 `viz/README.md`：以 index.html 为入口，说明每个 HTML 的
 场景/层级、面板与标记的读法。
