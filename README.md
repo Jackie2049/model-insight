@@ -15,10 +15,9 @@
 
 ## 示例
 
-仓库包含 [DeepSeek-V3.2](outputs/DeepSeek-V3.2/) 和 [Kimi-K3](outputs/Kimi-K3/) 的分析产物，已部署为在线页面：
+仓库包含 [DeepSeek-V3.2](outputs/DeepSeek-V3.2/) 的分析产物，已部署为在线页面：
 
 - [DeepSeek-V3.2 统一主页](https://jackie2049.github.io/model-insight/outputs/DeepSeek-V3.2/viz/index.html)
-- [Kimi-K3 统一主页](https://jackie2049.github.io/model-insight/outputs/Kimi-K3/viz/index.html)
 
 也可以本地浏览：
 
